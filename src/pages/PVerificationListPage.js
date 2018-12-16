@@ -5,7 +5,7 @@ import React from "react";
 import { Input } from "../shared/LoginPage";
 import { AsLink } from "./reusables";
 import { Link } from "react-router-dom";
-import { DataContext } from "../DataProvider";
+import { DataContext } from "../shared/DataContext";
 class FromTo extends React.Component {
   state = {
     from: "",

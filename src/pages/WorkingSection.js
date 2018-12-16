@@ -1,7 +1,7 @@
 import { css, jsx } from "@emotion/core";
 import { Flex, Text, Heading } from "@rebass/emotion";
 import React from "react";
-import { DataContext } from "../DataProvider";
+import { DataContext } from "../shared/DataContext";
 import { Route, Switch, Redirect } from "react-router";
 import { DialogButton, Button } from "../shared/primitives";
 import { ListGroup, ListItem } from "./reusables";

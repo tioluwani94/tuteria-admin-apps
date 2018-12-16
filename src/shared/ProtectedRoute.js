@@ -1,12 +1,8 @@
 import React from "react";
 import { Route, Redirect } from "react-router";
 import { HomePageSpinner } from "./primitives/Spinner";
-export const DataContext = React.createContext({
-  state: {},
-  dispatch: () => {},
-  actions: {}
-});
-
+import { DataContext } from "./DataContext";
+export { DataContext };
 export class ProtectedRoute extends React.Component {
   static contextType = DataContext;
   state = {

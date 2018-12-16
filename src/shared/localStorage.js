@@ -28,7 +28,7 @@ export const clearState = () => {
   }
 };
 
-export const getFragment = (key, defaultParam = {}) => {
+export const getFragment = (key, defaultParams = {}) => {
   let state = loadState() || {};
   return state[key] || defaultParams;
 };
