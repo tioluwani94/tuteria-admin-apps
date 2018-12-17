@@ -2,9 +2,12 @@ import {
   testData,
   testDataTransactions,
   hiredData,
-  VerifiedTransactions
+  VerifiedTransactions,
+  defaultWorkingdata,
+  sampleTutorDetailData,
+  tutorList
 } from "./test_data";
-import { getFragment, saveFragment } from "../localStorage";
+import { saveFragment } from "../localStorage";
 let token = "TESTDATATOKEN";
 function login(email, password) {
   return new Promise(resolve => resolve(token));
@@ -50,12 +53,49 @@ function loadVerifications() {
   return VerifiedTransactions;
 }
 
-function saveVerifications(verfications) {
+function saveVerifications(verifications) {
   saveFragment({ VERIFICATIONS: verifications });
+}
+
+function getTutorVerificationWorkedOn(agent) {
+  return new Promise(resolve => resolve(defaultWorkingdata));
+}
+function getAllUnverifiedTutors({ selection }) {
+  let options = {
+    new_applicant: x => x.verified === false,
+    verified_tutors: x => x.verified === true
+  };
+  let filterFunc = options[selection];
+  let result = filterFunc ? tutorList.filter(filterFunc) : tutorList;
+  return new Promise(resolve => resolve(result));
+}
+
+function fetchTutorDetail(props) {
+  return new Promise(resolve => resolve(sampleTutorDetailData));
+}
+function approveTutor(email, approved = false) {
+  let newTutor = { ...sampleTutorDetailData, verified: approved };
+  return new Promise(resolve => resolve(newTutor));
+}
+function notifyTutorAboutEmail(email) {
+  return new Promise(resolve => resolve());
+}
+function approveTutorEmail(email) {
+  return new Promise(resolve => resolve());
+}
+function rejectProfilePic(email) {
+  return new Promise(resolve => resolve());
+}
+function approveIdentification(email) {
+  return new Promise(resolve => resolve());
+}
+function rejectIdentification(email) {
+  return new Promise(resolve => resolve());
 }
 export default {
   login,
   authenticate,
+  //payment data
   getAllWithdrawals,
   getTransactions,
   getBookingTransaction,
@@ -65,5 +105,15 @@ export default {
   getHiredTransactions,
   getTransactionDetail,
   loadVerifications,
-  saveVerifications
+  saveVerifications,
+  //tutor verification
+  getTutorVerificationWorkedOn,
+  getAllUnverifiedTutors,
+  fetchTutorDetail,
+  approveTutor,
+  notifyTutorAboutEmail,
+  approveTutorEmail,
+  rejectProfilePic,
+  rejectIdentification,
+  approveIdentification
 };

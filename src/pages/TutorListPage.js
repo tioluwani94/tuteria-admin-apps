@@ -3,7 +3,11 @@ import { css, jsx } from "@emotion/core";
 import { Box, Flex, Button, Text } from "@rebass/emotion";
 import React from "react";
 import { AsLink } from "../shared/reusables";
+import { Link } from "react-router-dom";
+import { DataContext } from "../shared/DataContext";
+import { SpinnerContainer } from "../shared/primitives/Spinner";
 
+import { DateFilter } from "../shared/DateFilter";
 export const ListItem = ({
   heading,
   subHeading,
@@ -51,60 +55,93 @@ function determineAge(date) {
   return new Date().getFullYear() - year;
 }
 export class TutorListPage extends React.Component {
+  static contextType = DataContext;
+
   state = {
-    tutors: [
-      {
-        slug: "james1",
-        full_name: "James Novak",
-        dob: "2012-10-11 12:30:33",
-        state: "Lagos",
-        gender: "M",
-        verified: true,
-        email_verified: false
-      },
-      {
-        slug: "james2",
-        full_name: "James Novak",
-        dob: "2012-10-11 12:30:33",
-        state: "Lagos",
-        gender: "M",
-        verified: false,
-        email_verified: true
-      },
-      {
-        slug: "james3",
-        full_name: "James Novak",
-        dob: "2012-10-11 12:30:33",
-        state: "Lagos",
-        gender: "M",
-        verified: true,
-        email_verified: false
-      }
-    ]
+    tutors: [],
+    selection: ""
   };
   static defaultProps = {
     detailPageUrl: () => {}
   };
+  componentDidMount() {
+    this.fetchList(true);
+  }
   workedOn = slug => {};
+  fetchList = (refresh = false) => {
+    let { dispatch, actions } = this.context;
+    dispatch({
+      type: actions.GET_UNVERIFIED_TUTORS,
+      value: { refresh, selection: this.state.selection }
+    }).then(data => {
+      this.setState({ tutors: data });
+    });
+  };
+  refreshList = () => {
+    this.fetchList(true);
+  };
   render() {
     return (
-      <Flex flexDirection="column">
+      <SpinnerContainer condition={this.state.tutors.length === 0}>
         <Flex flexDirection="column">
-          {this.state.tutors.map(tutor => (
-            <ListItem
-              key={tutor.slug}
-              date={`Age (${determineAge(tutor.dob)})`}
-              heading={tutor.full_name}
-              subHeading={tutor.state}
-              gender={tutor.gender}
-              rightSection={tutor.email_verified}
-              to={this.props.detailPageUrl(tutor.slug)}
-              verified={tutor.verified}
-              // Link={Link}
-            />
-          ))}
+          <Flex
+            flexDirection="row-reverse"
+            justifyContent="space-between"
+            pr={2}
+            pb={3}
+            width={1}
+          >
+            <Button
+              css={css`
+                :active {
+                  opacity: 0.7;
+                }
+                :hover {
+                  cursor: pointer;
+                }
+              `}
+              onClick={this.refreshList}
+            >
+              Fetch More Records
+            </Button>
+            <Flex flexDirection="column">
+              <DateFilter
+                displayDate={false}
+                selection={this.state.selection}
+                onFilterChange={e =>
+                  this.setState({ selection: e.target.value }, () => {
+                    this.fetchList();
+                  })
+                }
+                placeholder="Search by email"
+                filterOptions={[
+                  { value: "", label: "All" },
+                  {
+                    value: "new_applicant",
+                    label: "New Applicants Only"
+                  },
+                  { value: "verified_tutors", label: "Verified Tutors" }
+                ]}
+              />
+            </Flex>
+          </Flex>
+          <Flex flexDirection="column">
+            {this.state.tutors.map(tutor => (
+              <ListItem
+                key={tutor.slug}
+                date={`Age (${determineAge(tutor.dob)})`}
+                heading={tutor.full_name}
+                subHeading={tutor.state}
+                gender={tutor.gender}
+                rightSection={tutor.email_verified}
+                to={this.props.detailPageUrl(tutor.slug)}
+                verified={tutor.verified}
+                Link={Link}
+              />
+            ))}
+          </Flex>
         </Flex>
-      </Flex>
+      </SpinnerContainer>
     );
   }
 }

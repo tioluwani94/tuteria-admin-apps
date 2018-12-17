@@ -6,91 +6,7 @@ import { Input } from "../shared/LoginPage";
 import { AsLink } from "./reusables";
 import { Link } from "react-router-dom";
 import { DataContext } from "../shared/DataContext";
-class FromTo extends React.Component {
-  state = {
-    from: "",
-    to: ""
-  };
-  onChange = key => {
-    return e => {
-      this.setState({ [key]: e.target.value }, () => {
-        this.props.onChange(this.state);
-      });
-    };
-  };
-  render() {
-    return (
-      <Flex>
-        <Input
-          label="From"
-          type="date"
-          isValid
-          value={this.state.from}
-          onChange={this.onChange("from")}
-        />
-        <Input
-          value={this.state.to}
-          label="To"
-          type="date"
-          isValid
-          onChange={this.onChange("to")}
-        />
-      </Flex>
-    );
-  }
-}
-
-export const DateFilter = ({
-  onChange,
-  onSearchChange,
-  displayDate = true,
-  onKeyDown = () => {},
-  onFilterChange = () => {}
-}) => {
-  return (
-    <Flex justifyContent="space-between">
-      <Box
-        w={1}
-        pr={4}
-        css={css`
-          flex: 1;
-          align-self: flex-end;
-        `}
-      >
-        <Input
-          onChange={onSearchChange}
-          onKeyDown={onKeyDown}
-          isValid
-          placeholder="Search either email or order "
-        />
-      </Box>
-      {displayDate && (
-        <>
-          <Flex flexDirection="column">
-            <FromTo onChange={onChange} />
-          </Flex>
-          <select
-            css={css`
-              height: 36px;
-
-              align-self: flex-end;
-              margin-bottom: 16px;
-              margin-left: 20px;
-            `}
-            onChange={onFilterChange}
-          >
-            {[
-              { value: "", label: "Select Filter" },
-              { value: "verified", label: "Verified Transactions" }
-            ].map(option => (
-              <option value={option.value}>{option.label}</option>
-            ))}
-          </select>
-        </>
-      )}
-    </Flex>
-  );
-};
+import { DateFilter } from "../shared/DateFilter";
 export const PVerificationListItem = ({
   heading,
   subHeading,
@@ -161,7 +77,13 @@ export class PVerificationListPage extends React.Component {
     return (
       <Flex flexDirection="column">
         <Flex flexDirection="column">
-          <DateFilter onChange={this.onDateFilter} />
+          <DateFilter
+            onChange={this.onDateFilter}
+            filterOptions={[
+              { value: "", label: "Select Filter" },
+              { value: "verified", label: "Verified Transactions" }
+            ]}
+          />
           <label>
             <input
               checked={this.state.client_search}

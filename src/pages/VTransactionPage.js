@@ -5,7 +5,7 @@ import { DataContext } from "../shared/DataContext";
 import { Route, Switch, Redirect } from "react-router";
 import { DialogButton, Button } from "../shared/primitives";
 import { ListGroup, ListItem } from "./reusables";
-import { DateFilter } from "./PVerificationListPage";
+import { DateFilter } from "../shared/DateFilter";
 import { Link } from "react-router-dom";
 
 export class VTransactionPage extends React.Component {

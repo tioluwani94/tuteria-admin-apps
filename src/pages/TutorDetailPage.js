@@ -1,13 +1,17 @@
 /** @jsx jsx */
 import { css, jsx } from "@emotion/core";
-import { Box, Flex, Button, Text, Heading, Image } from "@rebass/emotion";
+import { Flex, Text, Heading, Image, Link } from "@rebass/emotion";
+import { DialogButton } from "../shared/primitives";
+import { HomePageSpinner } from "../shared/primitives/Spinner";
 import React from "react";
 import { ListGroup, ListItem, DetailItem } from "../shared/reusables";
-import logo from "./logo.svg";
+import { DataContext } from "../shared/DataContext";
+import { actions as cActions } from "../shared/contexts/tutor_success";
 
 export const DetailHeader = ({
   image = "https://via.placeholder.com/100",
-  detail
+  detail,
+  children
 }) => {
   return (
     <Flex>
@@ -30,63 +34,215 @@ export const DetailHeader = ({
           align-self: center;
         `}
       >
-        <Text>Id Verified</Text>
-        <Text>Email Verified</Text>
-        <Text>Social Veifications</Text>
+        {children}
       </Flex>
     </Flex>
   );
 };
+const VerificationItem = ({ label, children, buttons = [] }) => {
+  return (
+    <Flex py={3} justifyContent="space-between">
+      <Flex flexDirection="column">
+        {label && (
+          <Text fontWeight="bold" pb={3}>
+            {label}
+          </Text>
+        )}
+        {children}
+      </Flex>
+      <Flex>
+        {buttons.map((button, index) => (
+          <DialogButton mr={index === 0 ? 3 : 0} {...button} />
+        ))}
+      </Flex>
+    </Flex>
+  );
+};
+const actions = {
+  EMAIL_VERIFICATION: "email_verification",
+  ID_VERIFICATION: "id_verification",
+  PROFILE_VERIFICATION: "profile_verification"
+};
 export class TutorDetailPage extends React.Component {
+  static contextType = DataContext;
+
   state = {
-    data: {
-      profile_pic: logo,
-      slug: "james3",
-      full_name: "James Novak",
-      dob: "2012-10-11 12:30:33",
-      state: "Lagos",
-      gender: "M",
-      verified: true,
-      email_verified: false,
-      email: "james@example.com",
-      phone_no: "07035209976",
-      years_of_experience: "6-10 Years",
-      tutor_description: `Ifeoluwa is a dedicated, resourceful and goal-driven professional educator with a solid commitment to the social and academic growth and development of every child. This I have been doing for 10 years now. I specialize in tutoring Numeracy, Literacy and sciences for Nursery, Primary and JSS students. I have successfully tutored students for common entrance,JSCE and BECE. I also have a strong passion in seeing my learners write with a good and eligible handwriting. I have a strong believe in Child-centred curriculum and aptitude to remain flexible, ensuring that every child learning styles and abilities are addressed. I provide assessment and feedback both to my learners and parent if applicable.`,
-      educations: [
-        {
-          school: "University of Lagos",
-          course: "Systems Engineering",
-          degree: "MSC"
-        },
-        {
-          school: "University of Lagos",
-          course: "Systems Engineering",
-          degree: "MSC"
-        }
-      ],
-      work_experiences: [
-        { name: "Tuteria Developer", role: "Backend Developer" },
-        { name: "Tuteria Developer", role: "Backend Developer" }
-      ],
-      locations: [
-        {
-          address: "20 Harrison Ojemen Street",
-          state: "Lagos",
-          vicinity: "GRA"
-        }
-      ],
-      potential_subjects: ["French", "English", "Physics"],
-      levels_with_exam: {},
-      answers: {},
-      classes: ["Nursery 2", "Primary 3", "JSS1"],
-      curriculum_used: ["British", "American"],
-      currriculum_explanation:
-        "It is an Interesting curriculum that helps growing child especially in Reading and number work."
-    }
+    data: {},
+    loading: false,
+    record: null,
+    email_approval: false,
+    id_verified: false,
+    profile_rejected: false
   };
+  componentDidMount() {
+    let {
+      match: {
+        params: { email, slug }
+      },
+      history
+    } = this.props;
+    let { dispatch, actions } = this.context;
+    console.log({ email, slug });
+    dispatch({
+      type: actions.TUTOR_INFO,
+      value: { email, slug }
+    })
+      .then(data => {
+        console.log({ data });
+        this.setState(data);
+      })
+      .catch(error => {
+        history.push("/tutor-list");
+      });
+  }
+  denyTutor = () => {
+    this.setState({ loading: true });
+    return this.localDispatch(cActions.DENY_TUTOR).then(data => {
+      this.setState({ data, loading: false });
+      this.props.history.push("/tutor-list");
+    });
+  };
+
+  approveTutor = () => {
+    this.setState({ loading: true });
+    return this.localDispatch(cActions.APPROVE_TUTOR).then(data => {
+      this.setState({ data, loading: false });
+    });
+  };
+  localDispatch = (type, values) => {
+    let { dispatch } = this.context;
+    return dispatch({
+      type,
+      value: Boolean(values)
+        ? { email: this.state.data.email, ...values }
+        : this.state.data.email
+    });
+  };
+  emailButtons = () => {
+    let { record, email_approval } = this.state;
+    let approveManually = {
+      children: "Approve Manually",
+      dialogText: "Are you sure you want to manually approve the email",
+      confirmAction: () => {
+        this.localDispatch(cActions.APPROVE_TUTOR_EMAIL).then(record => {
+          this.setState({
+            record,
+
+            data: { ...this.state.data, email_verified: true },
+            email_approval: true
+          });
+        });
+      }
+    };
+    let data = email_approval
+      ? [approveManually]
+      : [
+          {
+            confirmAction: () => {
+              this.localDispatch(cActions.NOTIFY_TUTOR_ABOUT_EMAIL, {
+                full_name: this.state.data.full_name
+              }).then(record => {
+                this.setState({ record });
+              });
+            },
+            dialogText:
+              "Are you sure you want to notify the tutor about his email?",
+            children:
+              record && record.actions.includes(actions.EMAIL_VERIFICATION)
+                ? "Send Notice Again"
+                : "Send Notice"
+          },
+          approveManually
+        ];
+    return data;
+  };
+  verificationButton = () => {
+    let { id_verified, record } = this.state;
+    let reject = {
+      children: "Reject",
+      dialogText: "You are about to reject the ID of the tutor. Confirm?",
+      confirmAction: () => {
+        this.localDispatch(cActions.REJECT_ID).then(record => {
+          this.setState({
+            record,
+            data: {
+              ...this.state.data,
+              identification: {}
+            }
+          });
+        });
+      }
+    };
+    let data = id_verified
+      ? []
+      : [
+          {
+            confirmAction: () => {
+              this.localDispatch(cActions.APPROVE_ID, {
+                full_name: this.state.data.full_name
+              }).then(record => {
+                this.setState({
+                  record,
+                  id_verified: true,
+                  data: {
+                    ...this.state.data,
+                    identification: {
+                      ...this.state.data.identification,
+                      verified: true
+                    }
+                  }
+                });
+              });
+            },
+            dialogText: "Are you sure you want to approve the ID?",
+            children:
+              record && record.actions.includes(actions.ID_VERIFICATION)
+                ? "Approve Again"
+                : "Approve ID"
+          },
+          reject
+        ];
+    return data;
+  };
+  profilePicButton = () => {
+    let result = [];
+    let { record } = this.state;
+    if (record && record.actions.includes(actions.PROFILE_VERIFICATION)) {
+      result.push({
+        children: "Approve",
+        disabled: this.state.profile_rejected,
+        confirmAction: () => {
+          this.localDispatch(cActions.APPROVE_PROFILE_PIC).then(() => {
+            this.setState({ profile_rejected: true });
+          });
+        },
+        dialogText:
+          "Are you sure you want to approve the profilePic for the tutor?"
+      });
+    }
+    result.push({
+      children: "Reject",
+      disabled: this.state.profile_rejected,
+      confirmAction: () => {
+        this.localDispatch(cActions.REJECT_PROFILE_PIC, {
+          full_name: this.state.data.full_name
+        }).then(() => {
+          this.setState({ profile_rejected: true });
+        });
+      },
+      dialogText:
+        "Are you sure you want to delete the profilePic for the tutor?"
+    });
+    return result;
+  };
+  idVerified(data = {}) {
+    return Object.keys(data).length > 0 ? data.verified : true;
+  }
   render() {
     let { data } = this.state;
-    return (
+    return Object.keys(data).length === 0 ? (
+      <HomePageSpinner />
+    ) : (
       <Flex flexDirection="column">
         <DetailHeader
           image={data.profile_pic}
@@ -96,8 +252,50 @@ export class TutorDetailPage extends React.Component {
             data.email,
             data.phone_no
           ]}
-        />
+        >
+          {data.identification.verified && <Text>Id Verified</Text>}
+          {data.email_verified && <Text>Email Verified</Text>}
+          <Text>Social Veifications</Text>
+        </DetailHeader>
         <Flex mb={4} flexDirection="column">
+          <ListGroup name="Verifications" />
+          {data.email_verified ? null : (
+            <VerificationItem
+              buttons={this.emailButtons()}
+              label="Email Verification"
+            />
+          )}
+          {this.idVerified(data.identification) ? null : (
+            <VerificationItem
+              label="ID Verifications"
+              buttons={this.verificationButton()}
+            >
+              <Link
+                css={css`
+                  cursor: pointer;
+                `}
+                target="_blank"
+                href={data.identification.link}
+              >
+                {data.identification.link}
+              </Link>
+            </VerificationItem>
+          )}
+          <VerificationItem
+            label="Profile Picture Approval"
+            buttons={this.profilePicButton()}
+          >
+            <Link
+              css={css`
+                cursor: pointer;
+              `}
+              target="_blank"
+              href={`http://www.google.com`}
+            >
+              http://ww.google.com
+            </Link>
+          </VerificationItem>
+
           <ListGroup name="Tutor Description" />
           <Text p={3}>{data.tutor_description}</Text>
           <ListGroup name="Educations" />
@@ -166,7 +364,22 @@ export class TutorDetailPage extends React.Component {
             </>
           ) : null}
           <Flex justifyContent="space-between" pt={3}>
-            <Button>Approve Tutor</Button> <Button>Deny Tutor</Button>
+            {!data.verified && (
+              <DialogButton
+                dialogText="Are you sure you want to approve this tutor"
+                confirmAction={this.approveTutor}
+                disabled={this.state.loading}
+              >
+                Approve Tutor
+              </DialogButton>
+            )}
+            <DialogButton
+              dialogText="Are you sure you want to deny this tutor?"
+              confirmAction={this.denyTutor}
+              disabled={this.state.loading}
+            >
+              Deny Tutor
+            </DialogButton>
           </Flex>
         </Flex>
       </Flex>

@@ -61,6 +61,7 @@ export const ListItem = ({
           <Text>{subHeading}</Text>
         </Box>
         <Flex
+          flexDirection="column"
           css={css`
             align-self: center;
           `}
@@ -80,3 +81,8 @@ export const DetailItem = ({ label, children }) => {
     </Flex>
   );
 };
+
+export function getTime(date) {
+  let dd = new Date(date);
+  return format(dd, "h:mm a");
+}

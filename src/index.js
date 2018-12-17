@@ -85,12 +85,24 @@ function App() {
         }}
       />
       <ProtectedRoute path="/withdrawals/:order" component={WDetailPage} />
-      <Route path="/tutor-list" component={TutorListPage} />
+      <Route
+        path="/tutor-list"
+        exact
+        render={props => (
+          <TutorListPage detailPageUrl={slug => `/tutor-list/${slug}`} />
+        )}
+      />
       <Route path="/tutor-list/:slug" component={TutorDetailPage} />
       <Route
         path="/tutor-working-section"
-        render={props => <WorkingSection {...props} detailPageUrl={() => ``} />}
+        render={props => (
+          <WorkingSection
+            {...props}
+            detailPageUrl={slug => `/worked-records/${slug}?email=true`}
+          />
+        )}
       />
+      <Route path="/worked-records/:email" component={TutorDetailPage} />
       <Redirect to="/tutor-list" />
     </WithRouter>
   );

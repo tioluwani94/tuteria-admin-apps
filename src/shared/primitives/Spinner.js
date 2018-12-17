@@ -91,4 +91,7 @@ export const DSpinner = props => {
     </div>
   );
 };
+export const SpinnerContainer = ({ condition, children }) => {
+  return condition ? <HomePageSpinner /> : children;
+};
 export default Spinner;

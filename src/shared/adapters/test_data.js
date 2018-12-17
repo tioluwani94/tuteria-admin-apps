@@ -1,3 +1,5 @@
+import logo from "./logo.svg";
+import { workingActions as actions } from "../contexts/tutor_success";
 export function testData() {
   return [
     {
@@ -253,4 +255,168 @@ export const VerifiedTransactions = {
       amount: "20000"
     }
   ]
+};
+
+export const defaultWorkingdata = [
+  {
+    email: "jj@example.com",
+    date: "2018-10-11 12:30:33",
+    full_name: "Donny Novak",
+    actions: [actions.EMAIL_VERIFICATION, actions.ID_VERIFICATION]
+  },
+  {
+    email: "jj2@example.com",
+    date: "2018-10-11 12:30:33",
+    full_name: "Donny Novak",
+    actions: [actions.PROFILE_VERIFICATION]
+  },
+  {
+    email: "j3@example.com",
+    date: "2018-10-11 12:30:33",
+    full_name: "Donny Novak",
+    actions: [actions.ID_VERIFICATION]
+  },
+  {
+    email: "jj4@example.com",
+    date: "2018-10-11 12:30:33",
+    full_name: "Donny Novak",
+    actions: [actions.EMAIL_VERIFICATION, actions.PROFILE_VERIFICATION]
+  },
+  {
+    email: "jj5@example.com",
+    date: "2018-10-10 12:30:33",
+    full_name: "Donny Novak",
+    actions: [actions.PROFILE_VERIFICATION]
+  },
+  {
+    email: "jj6@example.com",
+    date: "2018-10-10 12:30:33",
+    full_name: "Donny Novak",
+    actions: [actions.ID_VERIFICATION]
+  },
+  {
+    email: "jj7@example.com",
+    date: "2018-10-10 12:30:33",
+    full_name: "Donny Novak",
+    actions: [actions.EMAIL_VERIFICATION]
+  },
+  {
+    email: "jj8@example.com",
+    date: "2018-10-9 12:30:33",
+    full_name: "Donny Novak",
+    actions: [
+      actions.EMAIL_VERIFICATION,
+      actions.ID_VERIFICATION,
+      actions.ID_VERIFICATION
+    ]
+  },
+  {
+    email: "jj9@example.com",
+    date: "2018-10-9 12:30:33",
+    full_name: "Donny Novak",
+    actions: [actions.ID_VERIFICATION]
+  },
+  {
+    email: "jj10@example.com",
+    date: "2018-10-9 12:30:33",
+    full_name: "Donny Novak",
+    actions: [actions.EMAIL_VERIFICATION]
+  },
+  {
+    email: "jj11@example.com",
+    date: "2018-10-9 12:30:33",
+    full_name: "Donny Novak",
+    actions: [actions.EMAIL_VERIFICATION, actions.ID_VERIFICATION]
+  }
+];
+
+export const tutorList = [
+  {
+    slug: "james1",
+    full_name: "James Novak",
+    email: "james2@example.com",
+    dob: "2012-10-11 12:30:33",
+    state: "Lagos",
+    gender: "M",
+    verified: true,
+    email_verified: false
+  },
+  {
+    slug: "james2",
+    full_name: "James Novak",
+    email: "james3@example.com",
+    dob: "2012-10-11 12:30:33",
+    state: "Lagos",
+    gender: "M",
+    verified: false,
+    email_verified: true
+  },
+  {
+    slug: "james3",
+    email: "james4@example.com",
+    full_name: "James Novak",
+    dob: "2012-10-11 12:30:33",
+    state: "Lagos",
+    gender: "M",
+    verified: true,
+    email_verified: false
+  },
+  {
+    slug: "jj101",
+    email: "jj11@example.com",
+    full_name: "James Novak",
+    dob: "2012-10-11 12:30:33",
+    state: "Lagos",
+    gender: "M",
+    verified: true,
+    email_verified: false
+  }
+];
+export const sampleTutorDetailData = {
+  profile_pic: logo,
+  slug: "james3",
+  full_name: "James Novak",
+  dob: "2012-10-11 12:30:33",
+  state: "Lagos",
+  gender: "M",
+  verified: true,
+  email_verified: false,
+  identification: {
+    link: "http://www.gogole.com",
+    verified: false
+  },
+  email: "james@example.com",
+  phone_no: "07035209976",
+  years_of_experience: "6-10 Years",
+  tutor_description: `Ifeoluwa is a dedicated, resourceful and goal-driven professional educator with a solid commitment to the social and academic growth and development of every child. This I have been doing for 10 years now. I specialize in tutoring Numeracy, Literacy and sciences for Nursery, Primary and JSS students. I have successfully tutored students for common entrance,JSCE and BECE. I also have a strong passion in seeing my learners write with a good and eligible handwriting. I have a strong believe in Child-centred curriculum and aptitude to remain flexible, ensuring that every child learning styles and abilities are addressed. I provide assessment and feedback both to my learners and parent if applicable.`,
+  educations: [
+    {
+      school: "University of Lagos",
+      course: "Systems Engineering",
+      degree: "MSC"
+    },
+    {
+      school: "University of Lagos2",
+      course: "Systems Engineering",
+      degree: "MSC"
+    }
+  ],
+  work_experiences: [
+    { name: "Tuteria Developer", role: "Backend Developer" },
+    { name: "Tuteria Developer2", role: "Backend Developer" }
+  ],
+  locations: [
+    {
+      address: "20 Harrison Ojemen Street",
+      state: "Lagos",
+      vicinity: "GRA"
+    }
+  ],
+  potential_subjects: ["French", "English", "Physics"],
+  levels_with_exam: {},
+  answers: {},
+  classes: ["Nursery 2", "Primary 3", "JSS1"],
+  curriculum_used: ["British", "American"],
+  currriculum_explanation:
+    "It is an Interesting curriculum that helps growing child especially in Reading and number work."
 };

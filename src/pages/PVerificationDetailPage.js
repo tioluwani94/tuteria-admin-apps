@@ -1,3 +1,4 @@
+/** @jsx jsx */
 import { css, jsx } from "@emotion/core";
 import { Flex, Text, Heading } from "@rebass/emotion";
 import React from "react";
