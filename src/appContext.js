@@ -1,9 +1,9 @@
 import {
   getFragment,
   saveFragment
-} from "tuteria-search/lib/shared/localStorage";
+} from "tuteria-shared/lib/shared/localStorage";
 import format from "date-fns/format";
-import FireBase2 from "./adapters/backupFirebase";
+
 export const actions = {
   FETCH_TUTOR_WORKING_DATA: "FETCH_TUTOR_WORKING_DATA",
   GET_UNVERIFIED_TUTORS: "GET_UNVERIFIED_TUTORS",
@@ -45,7 +45,7 @@ function updateAnalytics(type, agent) {
   analyticsData = { ...analyticsData, [agent]: agentData };
   saveFragment({ ANALYTICS: analyticsData });
 }
-function getWorkingData(agent, updateState, remote = false) {
+function getWorkingData(firebaseAction, agent, updateState, remote = false) {
   let record = getFragment("WORKING_DATA", {});
   let agentData = record[agent] || [];
   if (remote) {
@@ -58,13 +58,18 @@ function getWorkingData(agent, updateState, remote = false) {
     resolve(agentData);
   });
 }
-export function autoSave(state, timeout = 10, interval = false) {
+export function autoSave(
+  firebaseAction,
+  state,
+  timeout = 10,
+  interval = false
+) {
   let { pending_verifications, agent = "Biola" } = state.context.state;
   let analyticsData = getFragment("ANALYTICS", {});
   let agentData = analyticsData[agent] || {};
   const saveFunc = () => {
     saveFragment(agent, pending_verifications, true);
-    saveWorkingData(agent, pending_verifications, true);
+    saveWorkingData(firebaseAction, agent, pending_verifications, true);
     firebaseAction("saveAnalytics", [agent, agentData]);
     console.log("Saved to firebase", { agentData, pending_verifications });
   };
@@ -74,7 +79,7 @@ export function autoSave(state, timeout = 10, interval = false) {
   saveFunc();
   // }
 }
-function saveWorkingData(agent, data, remote = false) {
+function saveWorkingData(firebaseAction, agent, data, remote = false) {
   let record = getFragment("WORKING_DATA", {});
   let agentData = record[agent] || {};
   record = { ...record, [agent]: { ...agentData, ...data } };
@@ -83,7 +88,11 @@ function saveWorkingData(agent, data, remote = false) {
     firebaseAction("saveWorkingData", [agent, data]);
   }
 }
-function getWorkingDataRecords(value, { getAdapter, updateState, state }) {
+function getWorkingDataRecords(
+  firebaseAction,
+  value,
+  { getAdapter, updateState, state }
+) {
   let { pending_verifications, agent = "Biola" } = state.context.state;
   if (pending_verifications.length > 0) {
     return new Promise(resolve => resolve(pending_verifications));
@@ -97,9 +106,17 @@ function getWorkingDataRecords(value, { getAdapter, updateState, state }) {
       throw err;
     });
 }
-function fetchTutorDetail(props, { getAdapter, state, updateState }) {
+function fetchTutorDetail(
+  firebaseAction,
+  props,
+  { getAdapter, state, updateState }
+) {
   return Promise.all([
-    getWorkingDataRecords(null, { getAdapter, state, updateState }),
+    getWorkingDataRecords(firebaseAction, null, {
+      getAdapter,
+      state,
+      updateState
+    }),
     getAdapter().fetchTutorDetail(props)
   ]).then(data => {
     let record = data[0].find(x => x.email === props.email);
@@ -109,9 +126,17 @@ function fetchTutorDetail(props, { getAdapter, state, updateState }) {
     };
   });
 }
-const getUnverifiedTutors = (params, { getAdapter, state, updateState }) => {
+const getUnverifiedTutors = (
+  firebaseAction,
+  params,
+  { getAdapter, state, updateState }
+) => {
   return Promise.all([
-    getWorkingDataRecords(null, { getAdapter, state, updateState }),
+    getWorkingDataRecords(firebaseAction, null, {
+      getAdapter,
+      state,
+      updateState
+    }),
     getAdapter().getAllUnverifiedTutors(params)
   ]).then(data => {
     let emailsOnly = data[0].map(x => x.email);
@@ -294,8 +319,8 @@ function rejectIdentification(
       return data.find(x => x.email === email);
     });
 }
-function saveProgress(value, { state, agent, updateState }) {
-  autoSave(state);
+function saveProgress(firebaseAction, value, { state, agent, updateState }) {
+  autoSave(firebaseAction, state);
 }
 function approveTutorEmail(email, { getAdapter, state, updateState }) {
   let { agent = "Biola" } = state.context.state;
@@ -312,21 +337,23 @@ function approveTutorEmail(email, { getAdapter, state, updateState }) {
       return data.find(x => x.email === email);
     });
 }
-function firebaseAction(key, args) {
-  return FireBase2[key](...args);
-  // return import("../adapters/backupFirebase.js").then(module => {
-  //   let func = module.default[key];
-  //   return func(...args);
-  // });
-}
-const dispatch = (action, existingOptions = {}) => {
+const dispatch = (action, existingOptions = {}, firebaseFunc) => {
   // firebaseAction("getAnalytics", ["Abiola"]).then(data => {
   //   console.log(data);
   // });
-  return {
-    [actions.FETCH_TUTOR_WORKING_DATA]: getWorkingDataRecords,
-    [actions.GET_UNVERIFIED_TUTORS]: getUnverifiedTutors,
-    [actions.TUTOR_INFO]: fetchTutorDetail,
+  function firebaseAction(key, args) {
+    return firebaseFunc[key](...args);
+  }
+  let options = {
+    [actions.FETCH_TUTOR_WORKING_DATA]: getWorkingDataRecords.bind(
+      null,
+      firebaseAction
+    ),
+    [actions.GET_UNVERIFIED_TUTORS]: getUnverifiedTutors.bind(
+      null,
+      firebaseAction
+    ),
+    [actions.TUTOR_INFO]: fetchTutorDetail.bind(null, firebaseAction),
     [actions.APPROVE_TUTOR]: approveTutor,
     [actions.DENY_TUTOR]: denyTutor,
     [actions.NOTIFY_TUTOR_ABOUT_EMAIL]: notifyTutorAboutEmail,
@@ -337,16 +364,20 @@ const dispatch = (action, existingOptions = {}) => {
     [actions.APPROVE_PROFILE_PIC]: approveProfilePic,
     [actions.UPLOAD_PROFILE_PIC]: uploadProfilePic,
     [actions.UPLOAD_ID]: uploadVerificationId,
-    [actions.SAVE_PROGRESS]: saveProgress,
+    [actions.SAVE_PROGRESS]: saveProgress.bind(null, firebaseAction),
     ...existingOptions
   };
+  return options;
 };
-const componentDidMount = ({ updateState, state }) => {
+const componentDidMount = ({ updateState, state }, firebaseFunc) => {
   let { agent = "Biola" } = state.context.state;
-  getWorkingData(agent, updateState, true).then(data => {
+  function firebaseAction(key, args) {
+    return firebaseFunc[key](...args);
+  }
+  getWorkingData(firebaseAction, agent, updateState, true).then(data => {
     updateState({ pending_verifications: data });
   });
-  autoSave(state, 5, true);
+  autoSave(firebaseAction, state, 5, true);
 };
 export default {
   dispatch,
@@ -354,5 +385,9 @@ export default {
   componentDidMount,
   state: {
     pending_verifications: []
+  },
+  keys: {
+    analytics: "tutor_analytics",
+    storage: "tutor_working_data"
   }
 };

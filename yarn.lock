@@ -9711,7 +9711,7 @@ tunnel-agent@^0.6.0:
   dependencies:
     safe-buffer "^5.0.1"
 
-tuteria-shared@../tuteria-shared/:
+tuteria-shared@../tuteria-shared:
   version "1.0.0"
   dependencies:
     "@babel/cli" "^7.2.0"

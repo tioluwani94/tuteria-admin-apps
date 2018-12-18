@@ -7,6 +7,7 @@ import { Route, Redirect, Link } from "react-router-dom";
 import ProtectedRoute from "tuteria-shared/lib/shared/ProtectedRoute";
 import { devAdapter } from "./adapters";
 import WithRouter from "tuteria-shared/lib/shared/PageSetup";
+import appContext from './appContext'
 // import WithRouter from "./shared/PageSetup";
 
 const TutorDetailPage = React.lazy(() => import("./pages/TutorDetailPage"));
@@ -26,6 +27,7 @@ function App() {
   return (
     <WithRouter
       adapter={devAdapter}
+      context={appContext}
       heading={
         <Flex
           pb={3}

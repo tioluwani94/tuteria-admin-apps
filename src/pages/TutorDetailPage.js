@@ -10,7 +10,7 @@ import {
   DetailItem
 } from "tuteria-shared/lib/shared/reusables";
 import { DataContext } from "tuteria-shared/lib/shared/DataContext";
-import { actions as cActions } from "tuteria-shared/lib/shared/contexts/tutor_success";
+import { actions as cActions } from "../appContext";
 
 export const DetailHeader = ({
   image = "https://via.placeholder.com/100",
