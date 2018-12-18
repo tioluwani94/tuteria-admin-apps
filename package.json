@@ -9,7 +9,7 @@
     "react": "16.6.3",
     "react-dom": "16.6.3",
     "react-scripts": "2.0.3",
-    "tuteria-shared": "https://github.com/gbozee/Shared-Admin-Lib"
+    "tuteria-shared": "gbozee/Shared-Admin-Lib"
   },
   "devDependencies": {},
   "scripts": {
