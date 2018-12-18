@@ -105,8 +105,10 @@ export class TutorDetailPage extends React.Component {
 
   approveTutor = () => {
     this.setState({ loading: true });
-    return this.localDispatch(cActions.APPROVE_TUTOR).then(data => {
-      this.setState({ data, loading: false });
+    return this.localDispatch(cActions.APPROVE_TUTOR, {
+      verified: this.state.data.verified
+    }).then(data => {
+      this.setState({ data, loading: false, record: null });
     });
   };
   localDispatch = (type, values) => {
@@ -157,7 +159,27 @@ export class TutorDetailPage extends React.Component {
     return data;
   };
   verificationButton = () => {
-    let { id_verified, record } = this.state;
+    let { id_verified, record, data } = this.state;
+    if (
+      !Boolean(data.identification) ||
+      Object.keys(data.identification).length === 0
+    ) {
+      return [
+        {
+          children: "Send Email Notice",
+          disabled: this.state.id_verified,
+          dialogText:
+            "Are you sure you want to notify the tutor to upload an ID?",
+          confirmAction: () => {
+            this.localDispatch(cActions.UPLOAD_ID, {
+              full_name: data.full_name
+            }).then(record => {
+              this.setState({ id_verified: true, record });
+            });
+          }
+        }
+      ];
+    }
     let reject = {
       children: "Reject",
       dialogText: "You are about to reject the ID of the tutor. Confirm?",
@@ -173,7 +195,7 @@ export class TutorDetailPage extends React.Component {
         });
       }
     };
-    let data = id_verified
+    data = id_verified
       ? []
       : [
           {
@@ -206,37 +228,57 @@ export class TutorDetailPage extends React.Component {
   };
   profilePicButton = () => {
     let result = [];
-    let { record } = this.state;
-    if (record && record.actions.includes(actions.PROFILE_VERIFICATION)) {
+    let { record, data } = this.state;
+    if (!Boolean(data.profile_pic)) {
       result.push({
-        children: "Approve",
+        children: "Send Notice",
+        disabled: this.state.profile_rejected,
+        dialogText:
+          "Are you sure you want to notify the tutor to upload a profile Pic?",
+        confirmAction: () => {
+          this.localDispatch(cActions.UPLOAD_PROFILE_PIC, {
+            full_name: data.full_name
+          }).then(() => {
+            this.setState({ profile_rejected: true });
+          });
+        }
+      });
+    } else {
+      if (record && record.actions.includes(actions.PROFILE_VERIFICATION)) {
+        result.push({
+          children: "Approve",
+          disabled: this.state.profile_rejected,
+          confirmAction: () => {
+            this.localDispatch(cActions.APPROVE_PROFILE_PIC).then(() => {
+              this.setState({ profile_rejected: true });
+            });
+          },
+          dialogText:
+            "Are you sure you want to approve the profilePic for the tutor?"
+        });
+      }
+      result.push({
+        children: "Reject",
         disabled: this.state.profile_rejected,
         confirmAction: () => {
-          this.localDispatch(cActions.APPROVE_PROFILE_PIC).then(() => {
+          this.localDispatch(cActions.REJECT_PROFILE_PIC, {
+            full_name: this.state.data.full_name
+          }).then(() => {
             this.setState({ profile_rejected: true });
           });
         },
         dialogText:
-          "Are you sure you want to approve the profilePic for the tutor?"
+          "Are you sure you want to delete the profilePic for the tutor?"
       });
     }
-    result.push({
-      children: "Reject",
-      disabled: this.state.profile_rejected,
-      confirmAction: () => {
-        this.localDispatch(cActions.REJECT_PROFILE_PIC, {
-          full_name: this.state.data.full_name
-        }).then(() => {
-          this.setState({ profile_rejected: true });
-        });
-      },
-      dialogText:
-        "Are you sure you want to delete the profilePic for the tutor?"
-    });
     return result;
   };
-  idVerified(data = {}) {
-    return Object.keys(data).length > 0 ? data.verified : true;
+  idVerified(data = {}, force = false) {
+    return force
+      ? Boolean(data.verified)
+      : Object.keys(data).length > 0
+      ? data.verified
+      : true;
   }
   render() {
     let { data } = this.state;
@@ -253,7 +295,9 @@ export class TutorDetailPage extends React.Component {
             data.phone_no
           ]}
         >
-          {data.identification.verified && <Text>Id Verified</Text>}
+          {this.idVerified(data.identification, true) && (
+            <Text>Id Verified</Text>
+          )}
           {data.email_verified && <Text>Email Verified</Text>}
           <Text>Social Veifications</Text>
         </DetailHeader>
@@ -265,20 +309,22 @@ export class TutorDetailPage extends React.Component {
               label="Email Verification"
             />
           )}
-          {this.idVerified(data.identification) ? null : (
+          {this.idVerified(data.identification, true) ? null : (
             <VerificationItem
               label="ID Verifications"
               buttons={this.verificationButton()}
             >
-              <Link
-                css={css`
-                  cursor: pointer;
-                `}
-                target="_blank"
-                href={data.identification.link}
-              >
-                {data.identification.link}
-              </Link>
+              {data.identification ? (
+                <Link
+                  css={css`
+                    cursor: pointer;
+                  `}
+                  target="_blank"
+                  href={data.identification.link}
+                >
+                  {data.identification.link}
+                </Link>
+              ) : null}
             </VerificationItem>
           )}
           <VerificationItem
@@ -364,15 +410,17 @@ export class TutorDetailPage extends React.Component {
             </>
           ) : null}
           <Flex justifyContent="space-between" pt={3}>
-            {!data.verified && (
-              <DialogButton
-                dialogText="Are you sure you want to approve this tutor"
-                confirmAction={this.approveTutor}
-                disabled={this.state.loading}
-              >
-                Approve Tutor
-              </DialogButton>
-            )}
+            {!data.verified ||
+              (Boolean(this.state.record) &&
+                Object.keys(this.state.record).length > 0 && (
+                  <DialogButton
+                    dialogText="Are you sure you want to approve this tutor"
+                    confirmAction={this.approveTutor}
+                    disabled={this.state.loading}
+                  >
+                    {!data.verified ? `Approve Tutor` : `Remove from List`}
+                  </DialogButton>
+                ))}
             <DialogButton
               dialogText="Are you sure you want to deny this tutor?"
               confirmAction={this.denyTutor}

@@ -80,6 +80,10 @@ export class TutorListPage extends React.Component {
   refreshList = () => {
     this.fetchList(true);
   };
+  getState = (location = []) => {
+    let result = location[0] || {};
+    return result.state;
+  };
   render() {
     return (
       <SpinnerContainer condition={this.state.tutors.length === 0}>
@@ -131,7 +135,7 @@ export class TutorListPage extends React.Component {
                 key={tutor.slug}
                 date={`Age (${determineAge(tutor.dob)})`}
                 heading={tutor.full_name}
-                subHeading={tutor.state}
+                subHeading={this.getState(tutor.locations)}
                 gender={tutor.gender}
                 rightSection={tutor.email_verified}
                 to={this.props.detailPageUrl(tutor.slug)}

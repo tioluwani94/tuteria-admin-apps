@@ -5,7 +5,8 @@ import {
   VerifiedTransactions,
   defaultWorkingdata,
   sampleTutorDetailData,
-  tutorList
+  tutorList,
+  getTutorDetail
 } from "./test_data";
 import { saveFragment } from "../localStorage";
 let token = "TESTDATATOKEN";
@@ -71,9 +72,11 @@ function getAllUnverifiedTutors({ selection }) {
 }
 
 function fetchTutorDetail(props) {
-  return new Promise(resolve => resolve(sampleTutorDetailData));
+  let key = Object.keys(props).find(x => props[x] !== undefined);
+  let result = getTutorDetail(key, props[key]);
+  return new Promise(resolve => resolve(result));
 }
-function approveTutor(email, approved = false) {
+function approveTutor(email, approved = false, verified = false) {
   let newTutor = { ...sampleTutorDetailData, verified: approved };
   return new Promise(resolve => resolve(newTutor));
 }
@@ -90,6 +93,12 @@ function approveIdentification(email) {
   return new Promise(resolve => resolve());
 }
 function rejectIdentification(email) {
+  return new Promise(resolve => resolve());
+}
+function uploadProfilePicEmail(email) {
+  return new Promise(resolve => resolve());
+}
+function uploadVerificationIdEmail(email) {
   return new Promise(resolve => resolve());
 }
 export default {
@@ -115,5 +124,7 @@ export default {
   approveTutorEmail,
   rejectProfilePic,
   rejectIdentification,
-  approveIdentification
+  approveIdentification,
+  uploadProfilePic: uploadProfilePicEmail,
+  uploadVerificationId: uploadVerificationIdEmail
 };

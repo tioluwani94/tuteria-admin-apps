@@ -11,7 +11,9 @@ export const actions = {
   REJECT_PROFILE_PIC: "REJECT_PROFILE_PIC",
   REJECT_ID: "REJECT_ID",
   APPROVE_ID: "APPROVE_ID",
-  APPROVE_PROFILE_PIC: "APPROVE_PROFILE_PIC"
+  APPROVE_PROFILE_PIC: "APPROVE_PROFILE_PIC",
+  UPLOAD_PROFILE_PIC: "UPLOAD_PROFILE_PIC",
+  UPLOAD_ID: "UPLOAD_ID"
 };
 export const workingActions = {
   EMAIL_VERIFICATION: "email_verification",
@@ -24,7 +26,9 @@ const analytics = {
   ID_APPROVAL: "ID_APPROVAL",
   ID_REJECTION: "ID_REJECTION",
   DENY_TUTOR: "DENY_TUTOR",
-  EMAIL_VERIFY: "EMAIL_VERIFY"
+  EMAIL_VERIFY: "EMAIL_VERIFY",
+  UPLOAD_PROFILE_PIC: "UPLOAD_PROFILE_PIC",
+  UPLOAD_ID: "UPLOAD_ID"
 };
 function updateAnalytics(type, agent) {
   let date = format(new Date(), "D/MM/YYYY");
@@ -72,11 +76,14 @@ const getUnverifiedTutors = (params, { getAdapter, state, updateState }) => {
     return data[1].filter(x => !emailsOnly.includes(x.email));
   });
 };
-function approveTutor(email, { getAdapter, state, updateState }) {
+function approveTutor(
+  { email, verified = false },
+  { getAdapter, state, updateState }
+) {
   let { agent = "Biola", pending_verifications } = state.context.state;
   let wk = pending_verifications.filter(x => x.email !== email);
   return getAdapter()
-    .approveTutor(email, true)
+    .approveTutor(email, true, verified)
     .then(data => {
       updateAnalytics(analytics.TUTOR_APPROVAL, agent);
       updateState({ pending_verifications: wk });
@@ -129,7 +136,6 @@ function notifyTutorAboutEmail(
     .notifyTutorAboutEmail(email)
     .then(() => {
       updateState({ pending_verifications: data });
-      console.log(data);
       return data.find(x => x.email === email);
     });
 }
@@ -139,9 +145,26 @@ function approveProfilePic(email, { state, updateState }) {
     state,
     workingActions.PROFILE_VERIFICATION
   );
-  console.log(data);
   updateState({ pending_verifications: data });
   return new Promise(resolve => resolve(data.find(x => x.email === email)));
+}
+function uploadProfilePic(
+  { email, full_name },
+  { getAdapter, state, updateState }
+) {
+  let { agent = "Biola" } = state.context.state;
+  let data = addToWorkingDirectory(
+    { email, full_name },
+    state,
+    workingActions.PROFILE_VERIFICATION
+  );
+  return getAdapter()
+    .uploadProfilePic(email)
+    .then(() => {
+      updateState({ pending_verifications: data });
+      updateAnalytics(analytics.UPLOAD_PROFILE_PIC, agent);
+      return data.find(x => x.email === email);
+    });
 }
 function rejectProfilePic(
   { email, full_name },
@@ -193,6 +216,24 @@ function removeFromWorkingDirectory(email, state, type) {
         .filter(x => x.actions.length > 0)
     : pending_verifications;
 }
+function uploadVerificationId(
+  { email, full_name },
+  { getAdapter, state, updateState }
+) {
+  let { agent = "Biola" } = state.context.state;
+  let data = addToWorkingDirectory(
+    { email, full_name },
+    state,
+    workingActions.ID_VERIFICATION
+  );
+  return getAdapter()
+    .uploadVerificationId(email)
+    .then(() => {
+      updateState({ pending_verifications: data });
+      updateAnalytics(analytics.UPLOAD_ID, agent);
+      return data.find(x => x.email === email);
+    });
+}
 function rejectIdentification(
   { email, full_name },
   { getAdapter, state, updateState }
@@ -223,7 +264,6 @@ function approveTutorEmail(email, { getAdapter, state, updateState }) {
     .approveTutorEmail(email)
     .then(() => {
       updateState({ pending_verifications: data });
-      console.log(data);
       updateAnalytics(analytics.EMAIL_VERIFY, agent);
       return data.find(x => x.email === email);
     });
@@ -241,6 +281,8 @@ const dispatch = (action, existingOptions = {}) => {
     [actions.APPROVE_ID]: approveIdentification,
     [actions.REJECT_ID]: rejectIdentification,
     [actions.APPROVE_PROFILE_PIC]: approveProfilePic,
+    [actions.UPLOAD_PROFILE_PIC]: uploadProfilePic,
+    [actions.UPLOAD_ID]: uploadVerificationId,
     ...existingOptions
   };
 };
