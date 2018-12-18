@@ -7,19 +7,23 @@ var config = {
   projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID
 };
 let db;
-firebase.initializeApp(config);
-db = firebase.firestore(); // if (!firebase.apps.length) {
-//   // Initialize Cloud Firestore through Firebase
-//   const settings = { /* your settings... */ timestampsInSnapshots: true };
-//   db.settings(settings);
-// }
-// if (!db) {
-//   db = firebase.firestore();
-// }
+if (!firebase.apps.length) {
+  firebase.initializeApp(config);
+  db = firebase.firestore();
+  // Initialize Cloud Firestore through Firebase
+  const settings = { /* your settings... */ timestampsInSnapshots: true };
+  db.settings(settings);
+}
+if (!db) {
+  db = firebase.firestore();
+}
 
 function saveAnalytics(agent, data) {
   // Add a new document in collection "cities"
-  return db.collection("tutor_analytics").doc(agent).set(data);
+  return db
+    .collection("tutor_analytics")
+    .doc(agent)
+    .set(data);
 }
 
 function getAnalytics(agent) {
@@ -28,21 +32,27 @@ function getAnalytics(agent) {
 }
 
 function saveWorkingData(agent, data) {
-  return db.collection("tutor_working_data").doc(agent).set({
-    record: data
-  });
+  return db
+    .collection("tutor_working_data")
+    .doc(agent)
+    .set({
+      record: data
+    });
 }
 
 function genericGet(ref, defaultParam = {}) {
-  return ref.get().then(function (doc) {
-    if (doc.exists) {
-      return doc.data();
-    } else {
-      return defaultParam;
-    }
-  }).catch(function (error) {
-    throw error;
-  });
+  return ref
+    .get()
+    .then(function(doc) {
+      if (doc.exists) {
+        return doc.data();
+      } else {
+        return defaultParam;
+      }
+    })
+    .catch(function(error) {
+      throw error;
+    });
 }
 
 function getWorkingData(agent, defaultParam = []) {

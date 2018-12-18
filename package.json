@@ -1,5 +1,5 @@
 {
-  "name": "new",
+  "name": "tuteria-admin-apps",
   "version": "1.0.0",
   "description": "",
   "keywords": [],
@@ -9,7 +9,7 @@
     "react": "16.6.3",
     "react-dom": "16.6.3",
     "react-scripts": "2.0.3",
-    "tuteria-shared": "gbozee/Shared-Admin-Lib"
+    "tuteria-shared": "https://github.com/Beeeola/Shared-Admin-Lib.git"
   },
   "devDependencies": {},
   "scripts": {
@@ -18,10 +18,5 @@
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject"
   },
-  "browserslist": [
-    ">0.2%",
-    "not dead",
-    "not ie <= 11",
-    "not op_mini all"
-  ]
+  "browserslist": [">0.2%", "not dead", "not ie <= 11", "not op_mini all"]
 }
