@@ -1,11 +1,8 @@
-import { css, jsx } from "@emotion/core";
-import { Flex, Text, Heading } from "@rebass/emotion";
+import { Flex } from "@rebass/emotion";
 import React from "react";
-import { DataContext } from "../shared/DataContext";
-import { Route, Switch, Redirect } from "react-router";
-import { DialogButton, Button } from "../shared/primitives";
+import { DataContext } from "tuteria-shared/lib/shared/DataContext";
 import { ListGroup, ListItem } from "./reusables";
-import { DateFilter } from "../shared/DateFilter";
+import { DateFilter } from "tuteria-shared/lib/shared/DateFilter";
 import { Link } from "react-router-dom";
 
 export class VTransactionPage extends React.Component {

@@ -1,10 +1,9 @@
 /** @jsx jsx */
-import { css, jsx } from "@emotion/core";
-import { Flex, Text, Heading } from "@rebass/emotion";
+import {  jsx } from "@emotion/core";
+import { Flex } from "@rebass/emotion";
 import React from "react";
-import { DataContext } from "../shared/DataContext";
-import { Route, Switch, Redirect } from "react-router";
-import { DialogButton, Button } from "../shared/primitives";
+import { DataContext } from "tuteria-shared/lib/shared/DataContext";
+import { Button } from "tuteria-shared/lib/shared/primitives";
 import { DetailHeader, DetailItem } from "./WDetailPage";
 import { ListGroup } from "./reusables";
 
@@ -16,7 +15,7 @@ export class PVerificationDetailPage extends React.Component {
   static contextType = DataContext;
 
   componentDidMount() {
-    let { match, history } = this.props;
+    let { match } = this.props;
     let { dispatch, actions } = this.context;
     dispatch({
       type: actions.TRANSACTION_DETAIL,

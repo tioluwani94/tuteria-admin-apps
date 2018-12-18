@@ -1,12 +1,16 @@
 /** @jsx jsx */
 import { css, jsx } from "@emotion/core";
 import { Flex, Text, Heading, Image, Link } from "@rebass/emotion";
-import { DialogButton } from "../shared/primitives";
-import { HomePageSpinner } from "../shared/primitives/Spinner";
+import { DialogButton } from "tuteria-shared/lib/shared/primitives";
+import { HomePageSpinner } from "tuteria-shared/lib/shared/primitives/Spinner";
 import React from "react";
-import { ListGroup, ListItem, DetailItem } from "../shared/reusables";
-import { DataContext } from "../shared/DataContext";
-import { actions as cActions } from "../shared/contexts/tutor_success";
+import {
+  ListGroup,
+  ListItem,
+  DetailItem
+} from "tuteria-shared/lib/shared/reusables";
+import { DataContext } from "tuteria-shared/lib/shared/DataContext";
+import { actions as cActions } from "tuteria-shared/lib/shared/contexts/tutor_success";
 
 export const DetailHeader = ({
   image = "https://via.placeholder.com/100",

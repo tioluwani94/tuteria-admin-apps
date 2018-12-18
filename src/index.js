@@ -4,8 +4,9 @@ import React from "react";
 import ReactDOM from "react-dom";
 import { Flex } from "@rebass/emotion";
 import { Route, Redirect, Link } from "react-router-dom";
-import ProtectedRoute from "./shared/ProtectedRoute";
-import WithRouter from "./shared/PageSetup";
+import ProtectedRoute from "tuteria-shared/lib/shared/ProtectedRoute";
+import WithRouter from 'tuteria-shared/lib/shared/PageSetup'
+// import WithRouter from "./shared/PageSetup";
 
 const TutorDetailPage = React.lazy(() => import("./pages/TutorDetailPage"));
 const WDetailPage = React.lazy(() => import("./pages/WDetailPage"));

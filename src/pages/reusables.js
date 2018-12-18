@@ -5,4 +5,4 @@ export {
   ListItem,
   DetailItem,
   getTime
-} from "../shared/reusables";
+} from "tuteria-shared/lib/shared/reusables";

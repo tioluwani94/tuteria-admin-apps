@@ -1,12 +1,11 @@
 /** @jsx jsx */
 import { css, jsx } from "@emotion/core";
-import { Box, Flex, Button, Text } from "@rebass/emotion";
+import { Box, Flex,  Text } from "@rebass/emotion";
 import React from "react";
-import { Input } from "../shared/LoginPage";
 import { AsLink } from "./reusables";
 import { Link } from "react-router-dom";
-import { DataContext } from "../shared/DataContext";
-import { DateFilter } from "../shared/DateFilter";
+import { DataContext } from "tuteria-shared/lib/shared/DataContext";
+import { DateFilter } from "tuteria-shared/lib/shared/DateFilter";
 export const PVerificationListItem = ({
   heading,
   subHeading,

@@ -2,12 +2,12 @@
 import { css, jsx } from "@emotion/core";
 import { Box, Flex, Button, Text } from "@rebass/emotion";
 import React from "react";
-import { AsLink } from "../shared/reusables";
+import { AsLink } from "tuteria-shared/lib/shared/reusables";
 import { Link } from "react-router-dom";
-import { DataContext } from "../shared/DataContext";
-import { SpinnerContainer } from "../shared/primitives/Spinner";
+import { DataContext } from "tuteria-shared/lib/shared/DataContext";
+import { SpinnerContainer } from "tuteria-shared/lib/shared/primitives/Spinner";
 
-import { DateFilter } from "../shared/DateFilter";
+import { DateFilter } from "tuteria-shared/lib/shared/DateFilter";
 export const ListItem = ({
   heading,
   subHeading,

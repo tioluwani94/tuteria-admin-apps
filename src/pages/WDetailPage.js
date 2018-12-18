@@ -2,9 +2,9 @@
 import { css, jsx } from "@emotion/core";
 import { Flex, Text, Heading } from "@rebass/emotion";
 import React from "react";
-import { DataContext } from "../shared/DataContext";
+import { DataContext } from "tuteria-shared/lib/shared/DataContext";
 import { Route, Switch, Redirect } from "react-router";
-import { DialogButton } from "../shared/primitives";
+import { DialogButton } from "tuteria-shared/lib/shared/primitives";
 
 import { ListGroup, ListItem, getDate, DetailItem } from "./reusables";
 export { DetailItem };
@@ -204,7 +204,7 @@ export class WDetailPage extends React.Component {
     return this.state.transactions.find(x => x.order === transaction_id);
   };
   goToTransactionDetail = (withdrawal_id, transaction_id) => {
-    let { match, history } = this.props;
+    let {  history } = this.props;
     let record = this.getTransactionDetail(transaction_id);
     this.getBookingTransaction(record.booking.order);
     history.push(
@@ -213,11 +213,11 @@ export class WDetailPage extends React.Component {
   };
   render() {
     let { data } = this.state;
-    let {
-      match: {
-        params: { order }
-      }
-    } = this.props;
+    // let {
+    //   match: {
+    //     params: { order }
+    //   }
+    // } = this.props;
     return (
       <Flex flexDirection="column">
         <DetailHeader heading={data.amount} subHeading={`to ${data.email}`}>
