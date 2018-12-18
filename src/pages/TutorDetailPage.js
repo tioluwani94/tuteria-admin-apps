@@ -286,6 +286,7 @@ export class TutorDetailPage extends React.Component {
   }
   render() {
     let { data } = this.state;
+    console.log(data.profile_pic);
     return Object.keys(data).length === 0 ? (
       <HomePageSpinner />
     ) : (

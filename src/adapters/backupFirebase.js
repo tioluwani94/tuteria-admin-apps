@@ -16,6 +16,8 @@ if (!firebase.apps.length) {
 }
 if (!db) {
   db = firebase.firestore();
+  const settings = { /* your settings... */ timestampsInSnapshots: true };
+  db.settings(settings);
 }
 
 function saveAnalytics(agent, data) {
