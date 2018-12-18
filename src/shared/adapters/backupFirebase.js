@@ -3,21 +3,21 @@ import firebase from "firebase/app";
 import "firebase/firestore";
 
 var config = {
-  apiKey: process.env.FIREBASE_API_KEY,
-  authDomain: `${process.env.FIREBASE_PROJECT_ID}.firebaseapp.com`,
-  projectId: process.env.FIREBASE_PROJECT_ID
+  apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
+  authDomain: `${process.env.REACT_APP_FIREBASE_PROJECT_ID}.firebaseapp.com`,
+  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID
 };
 let db;
-if (!firebase.apps.length) {
-  firebase.initializeApp(config);
-  db = firebase.firestore();
-  // Initialize Cloud Firestore through Firebase
-  const settings = { /* your settings... */ timestampsInSnapshots: true };
-  db.settings(settings);
-}
-if (!db) {
-  db = firebase.firestore();
-}
+firebase.initializeApp(config);
+db = firebase.firestore();
+// if (!firebase.apps.length) {
+//   // Initialize Cloud Firestore through Firebase
+//   const settings = { /* your settings... */ timestampsInSnapshots: true };
+//   db.settings(settings);
+// }
+// if (!db) {
+//   db = firebase.firestore();
+// }
 
 function saveAnalytics(agent, data) {
   // Add a new document in collection "cities"

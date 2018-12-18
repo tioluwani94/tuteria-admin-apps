@@ -7,7 +7,7 @@ import Spinner from "./primitives/Spinner";
 import { devAdapter } from "./adapters";
 import { DataContext } from "./ProtectedRoute";
 import LoginPage from "./LoginPage";
-export const WithRouter = ({ heading, children }) => {
+export const WithRouter = ({ heading, children, test=true }) => {
   return (
     <DataProvider
       test={test}

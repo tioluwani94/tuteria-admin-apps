@@ -1,5 +1,6 @@
 import { getFragment, saveFragment } from "../localStorage";
 import format from "date-fns/format";
+import FireBase2 from "../adapters/backupFirebase"
 export const actions = {
   FETCH_TUTOR_WORKING_DATA: "FETCH_TUTOR_WORKING_DATA",
   GET_UNVERIFIED_TUTORS: "GET_UNVERIFIED_TUTORS",
@@ -64,11 +65,11 @@ export function autoSave(state, timeout = 10, interval = false) {
     firebaseAction("saveAnalytics", [agent, agentData]);
     console.log("Saved to firebase", { agentData, pending_verifications });
   };
-  if (interval) {
-    setInterval(saveFunc, timeout * 1000 * 60);
-  } else {
+  // if (interval) {
+  //   setInterval(saveFunc, timeout * 1000 * 60);
+  // } else {
     saveFunc();
-  }
+  // }
 }
 function saveWorkingData(agent, data, remote = false) {
   let record = getFragment("WORKING_DATA", {});
@@ -309,6 +310,7 @@ function approveTutorEmail(email, { getAdapter, state, updateState }) {
     });
 }
 function firebaseAction(key, args) {
+  return FireBase2[key](...args)
   return import("../adapters/backupFirebase.js").then(module => {
     let func = module.default[key];
     return func(...args);
