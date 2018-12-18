@@ -13,7 +13,8 @@ export const actions = {
   APPROVE_ID: "APPROVE_ID",
   APPROVE_PROFILE_PIC: "APPROVE_PROFILE_PIC",
   UPLOAD_PROFILE_PIC: "UPLOAD_PROFILE_PIC",
-  UPLOAD_ID: "UPLOAD_ID"
+  UPLOAD_ID: "UPLOAD_ID",
+  SAVE_PROGRESS: "SAVE_PROGRESS"
 };
 export const workingActions = {
   EMAIL_VERIFICATION: "email_verification",
@@ -40,13 +41,50 @@ function updateAnalytics(type, agent) {
   analyticsData = { ...analyticsData, [agent]: agentData };
   saveFragment({ ANALYTICS: analyticsData });
 }
+function getWorkingData(agent, updateState, remote = false) {
+  let record = getFragment("WORKING_DATA", {});
+  let agentData = record[agent] || [];
+  if (remote) {
+    firebaseAction("getWorkingData", [agent]).then(data => {
+      updateState({ pending_verifications: data });
+      saveWorkingData(agent, data);
+    });
+  }
+  return new Promise(resolve => {
+    resolve(agentData);
+  });
+}
+export function autoSave(state, timeout = 10, interval = false) {
+  let { pending_verifications, agent = "Biola" } = state.context.state;
+  let analyticsData = getFragment("ANALYTICS", {});
+  let agentData = analyticsData[agent] || {};
+  const saveFunc = () => {
+    saveFragment(agent, pending_verifications, true);
+    saveWorkingData(agent, pending_verifications, true);
+    firebaseAction("saveAnalytics", [agent, agentData]);
+    console.log("Saved to firebase", { agentData, pending_verifications });
+  };
+  if (interval) {
+    setInterval(saveFunc, timeout * 1000 * 60);
+  } else {
+    saveFunc();
+  }
+}
+function saveWorkingData(agent, data, remote = false) {
+  let record = getFragment("WORKING_DATA", {});
+  let agentData = record[agent] || {};
+  record = { ...record, [agent]: { ...agentData, ...data } };
+  saveFragment({ WORKING_DATA: record });
+  if (remote) {
+    firebaseAction("saveWorkingData", [agent, data]);
+  }
+}
 function getWorkingDataRecords(value, { getAdapter, updateState, state }) {
-  let { pending_verifications } = state.context.state;
+  let { pending_verifications, agent = "Biola" } = state.context.state;
   if (pending_verifications.length > 0) {
     return new Promise(resolve => resolve(pending_verifications));
   }
-  return getAdapter()
-    .getTutorVerificationWorkedOn()
+  return firebaseAction("getWorkingData", [agent, []], [])
     .then(data => {
       updateState({ pending_verifications: data });
       return data;
@@ -252,7 +290,9 @@ function rejectIdentification(
       return data.find(x => x.email === email);
     });
 }
-
+function saveProgress(value, { state, agent, updateState }) {
+  autoSave(state);
+}
 function approveTutorEmail(email, { getAdapter, state, updateState }) {
   let { agent = "Biola" } = state.context.state;
   let data = removeFromWorkingDirectory(
@@ -268,7 +308,16 @@ function approveTutorEmail(email, { getAdapter, state, updateState }) {
       return data.find(x => x.email === email);
     });
 }
+function firebaseAction(key, args) {
+  return import("../adapters/backupFirebase.js").then(module => {
+    let func = module.default[key];
+    return func(...args);
+  });
+}
 const dispatch = (action, existingOptions = {}) => {
+  // firebaseAction("getAnalytics", ["Abiola"]).then(data => {
+  //   console.log(data);
+  // });
   return {
     [actions.FETCH_TUTOR_WORKING_DATA]: getWorkingDataRecords,
     [actions.GET_UNVERIFIED_TUTORS]: getUnverifiedTutors,
@@ -283,10 +332,19 @@ const dispatch = (action, existingOptions = {}) => {
     [actions.APPROVE_PROFILE_PIC]: approveProfilePic,
     [actions.UPLOAD_PROFILE_PIC]: uploadProfilePic,
     [actions.UPLOAD_ID]: uploadVerificationId,
+    [actions.SAVE_PROGRESS]: saveProgress,
     ...existingOptions
   };
 };
+const componentDidMount = ({ updateState, state }) => {
+  let { agent = "Biola" } = state.context.state;
+  getWorkingData(agent, updateState, true).then(data => {
+    updateState({ pending_verifications: data });
+  });
+  autoSave(state, 5, true);
+};
 export default {
   dispatch,
-  actions
+  actions,
+  componentDidMount
 };

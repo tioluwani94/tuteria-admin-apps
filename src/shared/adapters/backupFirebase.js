@@ -1,15 +1,23 @@
 import firebase from "firebase/app";
 // Required for side-effects
 import "firebase/firestore";
+
 var config = {
   apiKey: process.env.FIREBASE_API_KEY,
   authDomain: `${process.env.FIREBASE_PROJECT_ID}.firebaseapp.com`,
   projectId: process.env.FIREBASE_PROJECT_ID
 };
-firebase.initializeApp(config);
-
-// Initialize Cloud Firestore through Firebase
-const db = firebase.firestore();
+let db;
+if (!firebase.apps.length) {
+  firebase.initializeApp(config);
+  db = firebase.firestore();
+  // Initialize Cloud Firestore through Firebase
+  const settings = { /* your settings... */ timestampsInSnapshots: true };
+  db.settings(settings);
+}
+if (!db) {
+  db = firebase.firestore();
+}
 
 function saveAnalytics(agent, data) {
   // Add a new document in collection "cities"
@@ -19,6 +27,39 @@ function saveAnalytics(agent, data) {
     .set(data);
 }
 
-function getAnalytics(agent) {}
+function getAnalytics(agent) {
+  let ref = db.collection("tutor_analytics").doc(agent);
+  return genericGet(ref);
+}
 
-function saveWorkingData(agent, data) {}
+function saveWorkingData(agent, data) {
+  return db
+    .collection("tutor_working_data")
+    .doc(agent)
+    .set({ record: data });
+}
+function genericGet(ref, defaultParam = {}) {
+  return ref
+    .get()
+    .then(function(doc) {
+      if (doc.exists) {
+        return doc.data();
+      } else {
+        return defaultParam;
+      }
+    })
+    .catch(function(error) {
+      throw error;
+    });
+}
+function getWorkingData(agent, defaultParam = []) {
+  var docRef = db.collection("tutor_working_data").doc("agent");
+  return genericGet(docRef, { record: defaultParam }).then(d => d.record);
+}
+
+export default {
+  saveAnalytics,
+  getAnalytics,
+  getWorkingData,
+  saveWorkingData
+};

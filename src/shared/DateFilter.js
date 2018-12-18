@@ -22,6 +22,7 @@ class FromTo extends React.Component {
         <Input
           label="From"
           type="date"
+          name="from"
           isValid
           value={this.state.from}
           onChange={this.onChange("from")}
@@ -30,6 +31,7 @@ class FromTo extends React.Component {
           value={this.state.to}
           label="To"
           type="date"
+          name="to"
           isValid
           onChange={this.onChange("to")}
         />

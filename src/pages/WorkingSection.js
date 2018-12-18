@@ -8,11 +8,7 @@ import { DialogButton, Button } from "../shared/primitives";
 import { ListGroup, ListItem, getDate, getTime } from "./reusables";
 import { DateFilter } from "../shared/DateFilter";
 import { Link } from "react-router-dom";
-const actions = {
-  EMAIL_VERIFICATION: "email_verification",
-  ID_VERIFICATION: "id_verification",
-  PROFILE_VERIFICATION: "profile_verification"
-};
+
 export class VTransactionPage extends React.Component {
   static contextType = DataContext;
   state = {
@@ -71,7 +67,16 @@ export class VTransactionPage extends React.Component {
     if (e.keyCode === 13) {
     }
   };
+  saveProgress = () => {
+    let { dispatch, actions } = this.context;
+    dispatch({ type: actions.SAVE_PROGRESS });
+  };
   render() {
+    const actions = {
+      EMAIL_VERIFICATION: "email_verification",
+      ID_VERIFICATION: "id_verification",
+      PROFILE_VERIFICATION: "profile_verification"
+    };
     return (
       <Flex flexDirection="column">
         <Flex flexDirection="column">
@@ -96,6 +101,20 @@ export class VTransactionPage extends React.Component {
             ]}
           />
         </Flex>
+        <Button
+          width={1 / 4}
+          css={css`
+            :active {
+              opacity: 0.7;
+            }
+            :hover {
+              cursor: pointer;
+            }
+          `}
+          onClick={this.saveProgress}
+        >
+          Save Progress
+        </Button>
         <Flex flexDirection="column">{this.renderItemsInGroups()}</Flex>
       </Flex>
     );

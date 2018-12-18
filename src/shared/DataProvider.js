@@ -44,9 +44,10 @@ export class DataProvider extends React.Component {
     return this.props.adapter;
   };
   componentDidMount() {
-    this.updateState({
-      verified_transactions: this.getAdapter().loadVerifications()
-    });
+    TutorContext.componentDidMount(this);
+    // this.updateState({
+    //   verified_transactions: this.getAdapter().loadVerifications()
+    // });
   }
   updateState = obj => {
     let { context } = this.state;
