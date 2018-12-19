@@ -4,10 +4,12 @@ import React from "react";
 import ReactDOM from "react-dom";
 import { Flex } from "@rebass/emotion";
 import { Route, Redirect, Link } from "react-router-dom";
-import ProtectedRoute from "tuteria-shared/lib/shared/ProtectedRoute";
+import ProtectedRoute from "./shared/ProtectedRoute";
+// import ProtectedRoute from "tuteria-shared/lib/shared/ProtectedRoute";
 import { devAdapter } from "./adapters";
 import WithRouter from "tuteria-shared/lib/shared/PageSetup";
-import appContext from './appContext'
+import appContext from "./mergedContext";
+// import appFirebase from "./adapters/backupFirebase";
 // import WithRouter from "./shared/PageSetup";
 
 const TutorDetailPage = React.lazy(() => import("./pages/TutorDetailPage"));
@@ -28,6 +30,8 @@ function App() {
     <WithRouter
       adapter={devAdapter}
       context={appContext}
+      // firebase={appFirebase}
+      toNextPage={props => props.history.push("/withdrawals")}
       heading={
         <Flex
           pb={3}
@@ -48,7 +52,7 @@ function App() {
         </Flex>
       }
     >
-      <Route
+      <ProtectedRoute
         path="/payment-verifications"
         exact
         render={props => {
@@ -60,7 +64,7 @@ function App() {
           );
         }}
       />
-      <Route
+      <ProtectedRoute
         path="/verified-transactions"
         exact
         render={props => {
@@ -72,7 +76,7 @@ function App() {
           );
         }}
       />
-      <Route
+      <ProtectedRoute
         path="/payment-verifications/:order"
         render={props => {
           return <PVerificationDetailPage {...props} />;

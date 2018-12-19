@@ -1,5 +1,14 @@
-import { testData, testDataTransactions, hiredData, VerifiedTransactions, defaultWorkingdata, sampleTutorDetailData, tutorList, getTutorDetail } from "./test_data";
+import {
+  testData,
+  testDataTransactions,
+  hiredData,
+  defaultWorkingdata,
+  sampleTutorDetailData,
+  tutorList,
+  getTutorDetail
+} from "./test_data";
 import { saveFragment } from "tuteria-shared/lib/shared/localStorage";
+import { filterHelper } from ".";
 let token = "TESTDATATOKEN";
 
 function login(email, password) {
@@ -27,29 +36,38 @@ function deleteWithdrawal(order) {
 }
 
 function getBookingTransaction(transactionOrder) {
-  return new Promise(resolve => resolve({
-    amount: "N2000",
-    status: "TUTOR_HIRE",
-    date: "2018-10-10 9:20:33",
-    order: "AA101"
-  }));
+  return new Promise(resolve =>
+    resolve({
+      amount: "N2000",
+      status: "TUTOR_HIRE",
+      date: "2018-10-10 9:20:33",
+      order: "AA101"
+    })
+  );
 }
 
 function makePayment(order) {
   return new Promise(resolve => resolve({}));
 }
 
-function getHiredTransactions(props) {
-  return new Promise(resolve => resolve(hiredData));
+function getHiredTransactions(props, filterFunc) {
+  //props could be dateFilter, searchParam
+  if (Object.keys(props).length === 0) {
+    return new Promise(resolve => resolve(hiredData));
+  }
+  return new Promise(resolve =>
+    setTimeout(() => {
+      resolve(filterHelper(hiredData, props, filterFunc));
+    }, 2000)
+  );
 }
 
 function getTransactionDetail(props) {
-  return new Promise(resolve => resolve(hiredData.find(x => x.order == props)));
+  return new Promise(resolve =>
+    resolve(hiredData.find(x => x.order.toLowerCase() === props.toLowerCase()))
+  );
 }
 
-function loadVerifications() {
-  return VerifiedTransactions;
-}
 
 function saveVerifications(verifications) {
   saveFragment({
@@ -61,9 +79,7 @@ function getTutorVerificationWorkedOn(agent) {
   return new Promise(resolve => resolve(defaultWorkingdata));
 }
 
-function getAllUnverifiedTutors({
-  selection
-}) {
+function getAllUnverifiedTutors({ selection }) {
   let options = {
     new_applicant: x => x.verified === false,
     verified_tutors: x => x.verified === true
@@ -80,9 +96,7 @@ function fetchTutorDetail(props) {
 }
 
 function approveTutor(email, approved = false, verified = false) {
-  let newTutor = { ...sampleTutorDetailData,
-    verified: approved
-  };
+  let newTutor = { ...sampleTutorDetailData, verified: approved };
   return new Promise(resolve => resolve(newTutor));
 }
 
@@ -126,7 +140,6 @@ export default {
   makePayment,
   getHiredTransactions,
   getTransactionDetail,
-  loadVerifications,
   saveVerifications,
   //tutor verification
   getTutorVerificationWorkedOn,

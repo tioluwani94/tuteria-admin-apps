@@ -6,23 +6,14 @@ import { DataContext } from "tuteria-shared/lib/shared/DataContext";
 import { Route, Switch, Redirect } from "react-router";
 import { DialogButton } from "tuteria-shared/lib/shared/primitives";
 
-import { ListGroup, ListItem, getDate, DetailItem } from "./reusables";
-export { DetailItem };
-export const DetailHeader = ({ heading, subHeading, children }) => {
-  return (
-    <Flex
-      mb={4}
-      flexDirection="column"
-      css={css`
-        align-items: center;
-      `}
-    >
-      <Heading fontSize={5}>{heading}</Heading>
-      <Text>{subHeading}</Text>
-      {children}
-    </Flex>
-  );
-};
+import {
+  ListGroup,
+  ListItem,
+  getDate,
+  DetailItem,
+  DetailHeader
+} from "./reusables";
+
 function getDuration(start, end) {
   return `${getDate(start, true)} - ${getDate(end, true)}`;
 }
@@ -204,7 +195,7 @@ export class WDetailPage extends React.Component {
     return this.state.transactions.find(x => x.order === transaction_id);
   };
   goToTransactionDetail = (withdrawal_id, transaction_id) => {
-    let {  history } = this.props;
+    let { history } = this.props;
     let record = this.getTransactionDetail(transaction_id);
     this.getBookingTransaction(record.booking.order);
     history.push(
