@@ -1,7 +1,3 @@
-import {
-  getFragment,
-  saveFragment
-} from "tuteria-shared/lib/shared/localStorage";
 import format from "date-fns/format";
 
 export const actions = {
@@ -35,64 +31,39 @@ const analytics = {
   UPLOAD_PROFILE_PIC: "UPLOAD_PROFILE_PIC",
   UPLOAD_ID: "UPLOAD_ID"
 };
-function updateAnalytics(type, agent) {
+function updateAnalytics(firebaseAction, type, agent) {
   let date = format(new Date(), "D/MM/YYYY");
-  let analyticsData = getFragment("ANALYTICS", {});
-  let agentData = analyticsData[agent] || {};
-  let currentInstance = agentData[date] || {};
-  let oldInstance = currentInstance[type] || 0;
-  agentData = { [date]: { ...currentInstance, [type]: (oldInstance += 1) } };
-  analyticsData = { ...analyticsData, [agent]: agentData };
-  saveFragment({ ANALYTICS: analyticsData });
-}
-function getWorkingData(firebaseAction, agent, updateState, remote = false) {
-  let record = getFragment("WORKING_DATA", {});
-  let agentData = record[agent] || [];
-  if (remote) {
-    firebaseAction("getWorkingData", [agent]).then(data => {
-      updateState({ pending_verifications: data });
-      saveWorkingData(agent, data);
-    });
-  }
-  return new Promise(resolve => {
-    resolve(agentData);
+  return firebaseAction("getAnalytics", [agent]).then(agentData => {
+    let currentInstance = agentData[date] || {};
+    let oldInstance = currentInstance[type] || 0;
+    let newData = {
+      ...agentData,
+      [date]: { ...currentInstance, [type]: (oldInstance += 1) }
+    };
+    return firebaseAction("saveAnalytics", [agent, newData]);
   });
 }
-export function autoSave(
-  firebaseAction,
-  state,
-  timeout = 10,
-  interval = false
-) {
+function getWorkingData(firebaseAction, agent, updateState) {
+  return firebaseAction("getWorkingData", [agent]).then(data => {
+    updateState({ pending_verifications: data });
+    return data;
+  });
+}
+export function autoSave(firebaseAction, state) {
   let { pending_verifications, agent = "Biola" } = state.context.state;
-  let analyticsData = getFragment("ANALYTICS", {});
-  let agentData = analyticsData[agent] || {};
-  const saveFunc = () => {
-    saveFragment(agent, pending_verifications, true);
-    saveWorkingData(firebaseAction, agent, pending_verifications, true);
-    firebaseAction("saveAnalytics", [agent, agentData]);
-    console.log("Saved to firebase", { agentData, pending_verifications });
-  };
-  // if (interval) {
-  //   setInterval(saveFunc, timeout * 1000 * 60);
-  // } else {
-  saveFunc();
-  // }
+  return saveWorkingData(firebaseAction, agent, pending_verifications).then(
+    () => {
+      return firebaseAction("getAnalytics", [agent]).then(agentData => {
+        console.log("Saved to firebase", { agentData, pending_verifications });
+        return firebaseAction("saveAnalytics", [agent, agentData]);
+      });
+    }
+  );
 }
-function saveWorkingData(firebaseAction, agent, data, remote = false) {
-  let record = getFragment("WORKING_DATA", {});
-  let agentData = record[agent] || {};
-  record = { ...record, [agent]: { ...agentData, ...data } };
-  saveFragment({ WORKING_DATA: record });
-  if (remote) {
-    firebaseAction("saveWorkingData", [agent, data]);
-  }
+function saveWorkingData(firebaseAction, agent, data) {
+  return firebaseAction("saveWorkingData", [agent, data]);
 }
-function getWorkingDataRecords(
-  firebaseAction,
-  value,
-  { getAdapter, updateState, state }
-) {
+function getWorkingDataRecords(firebaseAction, value, { updateState, state }) {
   let { pending_verifications, agent = "Biola" } = state.context.state;
   if (pending_verifications.length > 0) {
     return new Promise(resolve => resolve(pending_verifications));
@@ -113,7 +84,6 @@ function fetchTutorDetail(
 ) {
   return Promise.all([
     getWorkingDataRecords(firebaseAction, null, {
-      getAdapter,
       state,
       updateState
     }),
@@ -133,7 +103,6 @@ const getUnverifiedTutors = (
 ) => {
   return Promise.all([
     getWorkingDataRecords(firebaseAction, null, {
-      getAdapter,
       state,
       updateState
     }),
@@ -144,6 +113,7 @@ const getUnverifiedTutors = (
   });
 };
 function approveTutor(
+  firebaseAction,
   { email, verified = false },
   { getAdapter, state, updateState }
 ) {
@@ -152,17 +122,19 @@ function approveTutor(
   return getAdapter()
     .approveTutor(email, true, verified)
     .then(data => {
-      updateAnalytics(analytics.TUTOR_APPROVAL, agent);
-      updateState({ pending_verifications: wk });
+      updateAnalytics(firebaseAction, analytics.TUTOR_APPROVAL, agent);
+      updateState({ pending_verifications: wk }, s => {
+        autoSave(firebaseAction, s);
+      });
       return data;
     });
 }
-function denyTutor(email, { getAdapter, state }) {
+function denyTutor(firebaseAction, email, { getAdapter, state }) {
   let { agent = "Biola" } = state.context.state;
   return getAdapter()
     .approveTutor(email, false)
     .then(data => {
-      updateAnalytics(analytics.DENY_TUTOR, agent);
+      updateAnalytics(firebaseAction, analytics.DENY_TUTOR, agent);
       return data;
     });
 }
@@ -191,6 +163,7 @@ function addToWorkingDirectory({ email, full_name }, state, type) {
       ];
 }
 function notifyTutorAboutEmail(
+  firebaseAction,
   { email, full_name },
   { getAdapter, state, updateState }
 ) {
@@ -202,20 +175,25 @@ function notifyTutorAboutEmail(
   return getAdapter()
     .notifyTutorAboutEmail(email)
     .then(() => {
-      updateState({ pending_verifications: data });
+      updateState({ pending_verifications: data }, s => {
+        autoSave(firebaseAction, s);
+      });
       return data.find(x => x.email === email);
     });
 }
-function approveProfilePic(email, { state, updateState }) {
+function approveProfilePic(firebaseAction, email, { state, updateState }) {
   let data = removeFromWorkingDirectory(
     email,
     state,
     workingActions.PROFILE_VERIFICATION
   );
-  updateState({ pending_verifications: data });
+  updateState({ pending_verifications: data }, s => {
+    autoSave(firebaseAction, s);
+  });
   return new Promise(resolve => resolve(data.find(x => x.email === email)));
 }
 function uploadProfilePic(
+  firebaseAction,
   { email, full_name },
   { getAdapter, state, updateState }
 ) {
@@ -228,12 +206,15 @@ function uploadProfilePic(
   return getAdapter()
     .uploadProfilePic(email)
     .then(() => {
-      updateState({ pending_verifications: data });
-      updateAnalytics(analytics.UPLOAD_PROFILE_PIC, agent);
+      updateState({ pending_verifications: data }, s => {
+        autoSave(firebaseAction, s);
+      });
+      updateAnalytics(firebaseAction, analytics.UPLOAD_PROFILE_PIC, agent);
       return data.find(x => x.email === email);
     });
 }
 function rejectProfilePic(
+  firebaseAction,
   { email, full_name },
   { getAdapter, state, updateState }
 ) {
@@ -246,12 +227,18 @@ function rejectProfilePic(
   return getAdapter()
     .rejectProfilePic(email)
     .then(() => {
-      updateState({ pending_verifications: data });
-      updateAnalytics(analytics.PROFILE_PICTURE, agent);
+      updateState({ pending_verifications: data }, s =>
+        autoSave(firebaseAction, s)
+      );
+      updateAnalytics(firebaseAction, analytics.PROFILE_PICTURE, agent);
       return data.find(x => x.email === email);
     });
 }
-function approveIdentification(email, { getAdapter, state, updateState }) {
+function approveIdentification(
+  firebaseAction,
+  email,
+  { getAdapter, state, updateState }
+) {
   let { agent = "Biola" } = state.context.state;
   let data = removeFromWorkingDirectory(
     email,
@@ -261,8 +248,10 @@ function approveIdentification(email, { getAdapter, state, updateState }) {
   return getAdapter()
     .approveIdentification(email)
     .then(() => {
-      updateState({ pending_verifications: data });
-      updateAnalytics(analytics.ID_APPROVAL, agent);
+      updateState({ pending_verifications: data }, s => {
+        autoSave(firebaseAction, s);
+      });
+      updateAnalytics(firebaseAction, analytics.ID_APPROVAL, agent);
       return data.find(x => x.email === email);
     });
 }
@@ -284,6 +273,7 @@ function removeFromWorkingDirectory(email, state, type) {
     : pending_verifications;
 }
 function uploadVerificationId(
+  firebaseAction,
   { email, full_name },
   { getAdapter, state, updateState }
 ) {
@@ -296,12 +286,15 @@ function uploadVerificationId(
   return getAdapter()
     .uploadVerificationId(email)
     .then(() => {
-      updateState({ pending_verifications: data });
-      updateAnalytics(analytics.UPLOAD_ID, agent);
+      updateState({ pending_verifications: data }, s => {
+        autoSave(firebaseAction, s);
+      });
+      updateAnalytics(firebaseAction, analytics.UPLOAD_ID, agent);
       return data.find(x => x.email === email);
     });
 }
 function rejectIdentification(
+  firebaseAction,
   { email, full_name },
   { getAdapter, state, updateState }
 ) {
@@ -314,15 +307,21 @@ function rejectIdentification(
   return getAdapter()
     .rejectIdentification(email)
     .then(() => {
-      updateState({ pending_verifications: data });
-      updateAnalytics(analytics.ID_REJECTION, agent);
+      updateState({ pending_verifications: data }, s => {
+        autoSave(firebaseAction, s);
+      });
+      updateAnalytics(firebaseAction, analytics.ID_REJECTION, agent);
       return data.find(x => x.email === email);
     });
 }
-function saveProgress(firebaseAction, value, { state, agent, updateState }) {
+function saveProgress(firebaseAction, value, { state }) {
   autoSave(firebaseAction, state);
 }
-function approveTutorEmail(email, { getAdapter, state, updateState }) {
+function approveTutorEmail(
+  firebaseAction,
+  email,
+  { getAdapter, state, updateState }
+) {
   let { agent = "Biola" } = state.context.state;
   let data = removeFromWorkingDirectory(
     email,
@@ -332,8 +331,10 @@ function approveTutorEmail(email, { getAdapter, state, updateState }) {
   return getAdapter()
     .approveTutorEmail(email)
     .then(() => {
-      updateState({ pending_verifications: data });
-      updateAnalytics(analytics.EMAIL_VERIFY, agent);
+      updateState({ pending_verifications: data }, s => {
+        autoSave(firebaseAction, s);
+      });
+      updateAnalytics(firebaseAction, analytics.EMAIL_VERIFY, agent);
       return data.find(x => x.email === email);
     });
 }
@@ -342,7 +343,7 @@ const dispatch = (action, existingOptions = {}, firebaseFunc) => {
   //   console.log(data);
   // });
   function firebaseAction(key, args) {
-    return firebaseFunc[key](...args);
+    return firebaseFunc.loadFireStore().then(() => firebaseFunc[key](...args));
   }
   let options = {
     [actions.FETCH_TUTOR_WORKING_DATA]: getWorkingDataRecords.bind(
@@ -354,16 +355,19 @@ const dispatch = (action, existingOptions = {}, firebaseFunc) => {
       firebaseAction
     ),
     [actions.TUTOR_INFO]: fetchTutorDetail.bind(null, firebaseAction),
-    [actions.APPROVE_TUTOR]: approveTutor,
-    [actions.DENY_TUTOR]: denyTutor,
-    [actions.NOTIFY_TUTOR_ABOUT_EMAIL]: notifyTutorAboutEmail,
-    [actions.APPROVE_TUTOR_EMAIL]: approveTutorEmail,
-    [actions.REJECT_PROFILE_PIC]: rejectProfilePic,
-    [actions.APPROVE_ID]: approveIdentification,
-    [actions.REJECT_ID]: rejectIdentification,
-    [actions.APPROVE_PROFILE_PIC]: approveProfilePic,
-    [actions.UPLOAD_PROFILE_PIC]: uploadProfilePic,
-    [actions.UPLOAD_ID]: uploadVerificationId,
+    [actions.APPROVE_TUTOR]: approveTutor.bind(null, firebaseAction),
+    [actions.DENY_TUTOR]: denyTutor.bind(null, firebaseAction),
+    [actions.NOTIFY_TUTOR_ABOUT_EMAIL]: notifyTutorAboutEmail.bind(
+      null,
+      firebaseAction
+    ),
+    [actions.APPROVE_TUTOR_EMAIL]: approveTutorEmail.bind(null, firebaseAction),
+    [actions.REJECT_PROFILE_PIC]: rejectProfilePic.bind(null, firebaseAction),
+    [actions.APPROVE_ID]: approveIdentification.bind(null, firebaseAction),
+    [actions.REJECT_ID]: rejectIdentification.bind(null, firebaseAction),
+    [actions.APPROVE_PROFILE_PIC]: approveProfilePic.bind(null, firebaseAction),
+    [actions.UPLOAD_PROFILE_PIC]: uploadProfilePic.bind(null, firebaseAction),
+    [actions.UPLOAD_ID]: uploadVerificationId.bind(null, firebaseAction),
     [actions.SAVE_PROGRESS]: saveProgress.bind(null, firebaseAction),
     ...existingOptions
   };
@@ -372,12 +376,11 @@ const dispatch = (action, existingOptions = {}, firebaseFunc) => {
 const componentDidMount = ({ updateState, state }, firebaseFunc) => {
   let { agent = "Biola" } = state.context.state;
   function firebaseAction(key, args) {
-    return firebaseFunc[key](...args);
+    return firebaseFunc.loadFireStore().then(() => firebaseFunc[key](...args));
   }
-  getWorkingData(firebaseAction, agent, updateState, true).then(data => {
+  getWorkingData(firebaseAction, agent, updateState).then(data => {
     updateState({ pending_verifications: data });
   });
-  autoSave(firebaseAction, state, 5, true);
 };
 export default {
   dispatch,

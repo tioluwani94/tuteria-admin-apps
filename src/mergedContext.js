@@ -35,5 +35,5 @@ export default {
     ...paymentContext.state,
     ...appContext.state
   },
-  keys: paymentContext.keys
+  keys: appContext.keys
 };

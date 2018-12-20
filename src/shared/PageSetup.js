@@ -1,5 +1,5 @@
 /** @jsx jsx */
-import { css, jsx } from "@emotion/core";
+import { jsx } from "@emotion/core";
 import React from "react";
 import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
 import DataProvider from "./DataProvider";

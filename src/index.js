@@ -7,10 +7,10 @@ import { Route, Redirect, Link } from "react-router-dom";
 import ProtectedRoute from "./shared/ProtectedRoute";
 // import ProtectedRoute from "tuteria-shared/lib/shared/ProtectedRoute";
 import { devAdapter } from "./adapters";
-import WithRouter from "tuteria-shared/lib/shared/PageSetup";
+// import WithRouter from "tuteria-shared/lib/shared/PageSetup";
 import appContext from "./mergedContext";
-// import appFirebase from "./adapters/backupFirebase";
-// import WithRouter from "./shared/PageSetup";
+import appFirebase from "./adapters/backupFirebase";
+import WithRouter from "./shared/PageSetup";
 
 const TutorDetailPage = React.lazy(() => import("./pages/TutorDetailPage"));
 const WDetailPage = React.lazy(() => import("./pages/WDetailPage"));
@@ -30,7 +30,7 @@ function App() {
     <WithRouter
       adapter={devAdapter}
       context={appContext}
-      // firebase={appFirebase}
+      firebase={appFirebase}
       toNextPage={props => props.history.push("/withdrawals")}
       heading={
         <Flex

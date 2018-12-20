@@ -53,11 +53,16 @@ export class DataProvider extends React.Component {
       }
     });
   }
-  updateState = obj => {
+  updateState = (obj, callback = () => {}) => {
     let { context } = this.state;
-    this.setState({
-      context: { ...context, state: { ...context.state, ...obj } }
-    });
+    this.setState(
+      {
+        context: { ...context, state: { ...context.state, ...obj } }
+      },
+      () => {
+        callback(this.state);
+      }
+    );
   };
 
   getToken() {
@@ -100,7 +105,7 @@ export class DataProvider extends React.Component {
           saveState({ token: data.token });
           this.updateState({ auth: true, agent: data.uid });
         } else {
-          throw "Not Logged In";
+          throw new Error("Not Logged In");
         }
       })
       .catch(error => {
