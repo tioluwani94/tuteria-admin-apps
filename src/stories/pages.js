@@ -4,11 +4,11 @@ import { storiesOf } from "@storybook/react";
 import { action } from "@storybook/addon-actions";
 import { linkTo } from "@storybook/addon-links";
 import LoginPage from "../../tutor-verification-app/src/shared/LoginPage";
-import TutorListPage from "../../tutor-verification-app/src/pages/TutorListPage";
+import TutorListPage from "../../../tutor-verification-app/src/pages/TutorListPage";
 
 
 import { Button, Welcome } from "@storybook/react/demo";
-import TutorDetailPage from "../../tutor-verification-app/src/pages/TutorDetailPage";
+import TutorDetailPage from "../../../tutor-verification-app/src/pages/TutorDetailPage";
 
 storiesOf("Welcome", module).add("to Storybook", () => (
   <Welcome showApp={linkTo("Button")} />

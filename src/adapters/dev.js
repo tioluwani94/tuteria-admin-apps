@@ -5,7 +5,11 @@ import {
   defaultWorkingdata,
   sampleTutorDetailData,
   tutorList,
-  getTutorDetail
+  getTutorDetail,
+  testDataBookings,
+  testDataGetBooking,
+  filterBookingsByStatus,
+  searchAllBookings
 } from "./test_data";
 import { saveFragment } from "tuteria-shared/lib/shared/localStorage";
 import { filterHelper } from ".";
@@ -68,7 +72,6 @@ function getTransactionDetail(props) {
   );
 }
 
-
 function saveVerifications(verifications) {
   saveFragment({
     VERIFICATIONS: verifications
@@ -128,6 +131,21 @@ function uploadVerificationIdEmail(email) {
   return new Promise(resolve => resolve());
 }
 
+const getAllBookings = params => {
+  return new Promise(resolve => resolve(testDataBookings));
+};
+
+const getBooking = order => {
+  return new Promise(resolve => resolve(testDataGetBooking(order)));
+};
+
+const filterBookings = status => {
+  return new Promise(resolve => resolve(filterBookingsByStatus(status)));
+};
+
+const searchBookings = search => {
+  return new Promise(resolve => resolve(searchAllBookings(search)));
+};
 export default {
   login,
   authenticate,
@@ -152,5 +170,10 @@ export default {
   rejectIdentification,
   approveIdentification,
   uploadProfilePic: uploadProfilePicEmail,
-  uploadVerificationId: uploadVerificationIdEmail
+  uploadVerificationId: uploadVerificationIdEmail,
+  // booking followup
+  getAllBookings,
+  getBooking,
+  filterBookings,
+  searchBookings
 };
