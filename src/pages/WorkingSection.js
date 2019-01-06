@@ -3,8 +3,8 @@ import { css, jsx } from "@emotion/core";
 import { Flex } from "@rebass/emotion";
 import React from "react";
 import { DataContext } from "tuteria-shared/lib/shared/DataContext";
-import {  Button } from "tuteria-shared/lib/shared/primitives";
-import { ListGroup, ListItem, getDate } from "./reusables";
+import { Button } from "tuteria-shared/lib/shared/primitives";
+import { SectionListPage } from "tuteria-shared/lib/shared/reusables";
 import { DateFilter } from "tuteria-shared/lib/shared/DateFilter";
 import { Link } from "react-router-dom";
 
@@ -31,32 +31,6 @@ export class VTransactionPage extends React.Component {
         ? result.filter(x => x.email.includes(searchParams))
         : result;
     return result;
-  }
-  renderItemsInGroups() {
-    let rows = [];
-    let lastCategory = null;
-    [...this.getFilteredResult()]
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-      .forEach((record, index) => {
-        let date = getDate(record.date);
-        if (date !== lastCategory) {
-          rows.push(<ListGroup name={date} key={date} />);
-        }
-        rows.push(
-          <ListItem
-            key={record.email}
-            heading={record.full_name}
-            subHeading={record.email}
-            rightSection={record.actions.map((x, i) => (
-              <div key={`${x}-${i}`}>{x}</div>
-            ))}
-            to={this.props.detailPageUrl(record.email)}
-            Link={Link}
-          />
-        );
-        lastCategory = date;
-      });
-    return rows;
   }
   onSearch = e => {
     this.setState({ searchParams: e.target.value });
@@ -114,7 +88,20 @@ export class VTransactionPage extends React.Component {
         >
           Save Progress
         </Button>
-        <Flex flexDirection="column">{this.renderItemsInGroups()}</Flex>
+        <Flex flexDirection="column">
+          <SectionListPage
+            data={this.getFilteredResult()}
+            callback={record => ({
+              heading: record.full_name,
+              subHeading: record.email,
+              rightSection: record.actions.map((x, i) => (
+                <div key={`${x}-${i}`}>{x}</div>
+              )),
+              to: this.props.detailPageUrl(record.email)
+            })}
+            LinkComponent={Link}
+          />
+        </Flex>
       </Flex>
     );
   }

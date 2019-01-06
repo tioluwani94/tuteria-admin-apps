@@ -162,7 +162,16 @@ const fetchVerifiedTransactons = (
       resolve({ verified_transactions, pending_verifications })
     );
   }
-  return firebaseAction("getWorkingData", [agent, {}]).then(data => {
+  return firebaseAction("getWorkingData", [
+    agent,
+    {},
+    {
+      pending_verifications: [
+        { order: "1004", transfer_code: "TRF_up7yj58e9eke7xl" }
+      ],
+      verified_transactions: {}
+    }
+  ]).then(data => {
     let result = data.pending_verifications
       ? data
       : {

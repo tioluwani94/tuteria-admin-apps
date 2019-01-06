@@ -1,5 +1,5 @@
-
-import "./login-page"
+import "./login-page";
 // import "./booking"
-import "./pages"
-import "./accounting"
+import "./tutor-success";
+import "./accounting";
+import "./sales";

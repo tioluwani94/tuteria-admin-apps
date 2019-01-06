@@ -44,7 +44,7 @@ function updateAnalytics(firebaseAction, type, agent) {
   });
 }
 function getWorkingData(firebaseAction, agent, updateState) {
-  return firebaseAction("getWorkingData", [agent]).then(data => {
+  return firebaseAction("getWorkingData", [agent, [], []]).then(data => {
     updateState({ pending_verifications: data });
     return data;
   });
@@ -68,14 +68,9 @@ function getWorkingDataRecords(firebaseAction, value, { updateState, state }) {
   if (pending_verifications.length > 0) {
     return new Promise(resolve => resolve(pending_verifications));
   }
-  return firebaseAction("getWorkingData", [agent, []], [])
-    .then(data => {
-      updateState({ pending_verifications: data });
-      return data;
-    })
-    .catch(err => {
-      throw err;
-    });
+  return getWorkingData(firebaseAction, agent, updateState).catch(err => {
+    throw err;
+  });
 }
 function fetchTutorDetail(
   firebaseAction,
@@ -101,16 +96,25 @@ const getUnverifiedTutors = (
   params,
   { getAdapter, state, updateState }
 ) => {
-  return Promise.all([
-    getWorkingDataRecords(firebaseAction, null, {
-      state,
-      updateState
-    }),
-    getAdapter().getAllUnverifiedTutors(params)
-  ]).then(data => {
-    let emailsOnly = data[0].map(x => x.email);
-    return data[1].filter(x => !emailsOnly.includes(x.email));
+  return getWorkingDataRecords(firebaseAction, null, {
+    state,
+    updateState
+  }).then(pending_verifications => {
+    return getAdapter().getAllUnverifiedTutors({
+      ...params,
+      email_exclude: pending_verifications.map(x => x.email)
+    });
   });
+  // return Promise.all([
+  //   getWorkingDataRecords(firebaseAction, null, {
+  //     state,
+  //     updateState
+  //   }),
+  //   getAdapter().getAllUnverifiedTutors(params)
+  // ]).then(data => {
+  //   let emailsOnly = data[0].map(x => x.email);
+  //   return data[1].filter(x => !emailsOnly.includes(x.email));
+  // });
 };
 function approveTutor(
   firebaseAction,
