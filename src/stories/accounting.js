@@ -11,12 +11,14 @@ import PVerificationListPage from "../pages/PVerificationListPage";
 import PVerificationDetailPage from "../pages/PVerificationDetailPage";
 import VTransactionPage from "../pages/VTransactionPage";
 import WDetailPage from "../pages/WDetailPage";
-import DataProvider, { ProtectedRoute, DataContext } from "tuteria-shared/lib/shared/DataProvider";
 import { MemoryRouter as Router, Route, Switch } from "react-router";
 import { Dialog } from "tuteria-shared/lib/shared/primitives/Modal";
 import { testData, testDataTransactions } from "../adapters/test_data";
 import devAdapter from "../adapters/dev";
+import WithRouter from "tuteria-shared/lib/shared/PageSetup";
 import testServerAdapter from "../adapters/test";
+import paymentContext from "../paymentContext";
+import appFirebase from "../adapters/backupFirebase";
 storiesOf("Welcome", module).add("to Storybook", () => (
   <Welcome showApp={linkTo("Button")} />
 ));
@@ -33,55 +35,33 @@ storiesOf("Button", module)
     </Button>
   ));
 
-const WithRouter = ({ children, initialIndex = 0, test = true }) => {
+const RouterWrapper = ({ children, initialIndex = 0, test = true }) => {
   return (
-    <DataProvider
+    <WithRouter
       test={test}
-      // adapter={testServerAdapter}
-      adapter={devAdapter}
-      authenticateUser={token => new Promise(resolve => resolve(true))}
-    >
-      <Router
-        initialEntries={[
+      RouterComponent={Router}
+      routerProps={{
+        initialEntries: [
           "/withdrawals",
           "/withdrawals/1004/transactions",
           "/withdrawals/1004/transactions/AA102",
           "/payment-verifications",
           "/payment-verifications/RSET323",
-          "/verified-transactions"
-        ]}
-        initialIndex={initialIndex}
-      >
-        <Switch>
-          <Route
-            path="/login"
-            render={props => {
-              return (
-                <DataContext.Consumer>
-                  {({ dispatch, actions }) => {
-                    return (
-                      <LoginPage
-                        login={props =>
-                          dispatch({ type: actions.LOGIN_USER, value: props })
-                        }
-                        toNextPage={() => {
-                          props.history.push("/withdrawals");
-                        }}
-                      />
-                    );
-                  }}
-                </DataContext.Consumer>
-              );
-            }}
-          />
-          {children}
-        </Switch>
-      </Router>
-    </DataProvider>
+          "/verified-transactions",
+          "unverified-withdrawals"
+        ],
+        initialIndex
+      }}
+      adapter={devAdapter}
+      context={paymentContext}
+      firebase={appFirebase}
+    >
+      {children}
+    </WithRouter>
   );
 };
-storiesOf("Pages", module)
-  .add("Login Page", () => (
+storiesOf("Accounting Application", module)
+  .add("PVerificationListPage", () => (
     <LoginPage
       login={() => {
         return new Promise((resolve, reject) => {
@@ -94,5 +74,47 @@ storiesOf("Pages", module)
       toNextPage={() => {}}
     />
   ))
-
-
+  .add("PVerificationDetailPage", () => (
+    <RouterWrapper initialIndex={4}>
+      <Route
+        path="/payment-verifications/:order"
+        render={props => {
+          return <PVerificationDetailPage {...props} />;
+        }}
+      />
+    </RouterWrapper>
+  ))
+  .add("VTransactionPage", () => null)
+  .add("WDetailPage", () => (
+    <RouterWrapper initialIndex={1}>
+      <Route
+        path="/withdrawals"
+        exact
+        render={props => {
+          return (
+            <WListPage
+              {...props}
+              detailPageUrl={order => `/withdrawals/${order}/transactions`}
+            />
+          );
+        }}
+      />
+      <Route path="/withdrawals/:order" component={WDetailPage} />
+    </RouterWrapper>
+  ))
+  .add("WListPage", () => (
+    <RouterWrapper>
+      <Route
+        path="/withdrawals"
+        exact
+        render={props => {
+          return (
+            <WListPage
+              {...props}
+              detailPageUrl={order => `/withdrawals/${order}/transactions`}
+            />
+          );
+        }}
+      />
+    </RouterWrapper>
+  ));

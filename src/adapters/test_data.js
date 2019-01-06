@@ -8,57 +8,57 @@ export const actions = {
 export function testData() {
   return [
     {
-      amount: "N20000",
+      amount: 20000,
       email: "james@example.com",
       date: "2018-10-12 14:10:33",
       order: "1002",
-      account_no: "00032423222",
-      bank: "GT Bank",
-      account_name: "Shola Ameobi",
+      account_no: "0003543556",
+      bank: "Guaranty Trust Bank",
+      account_name: "Abiola",
       phone_no: "07033233322",
       wallet_amount: "N0"
     },
     {
-      amount: "N10000",
+      amount: 10000,
       email: "gbozee@example.com",
       date: "2018-10-11 12:30:33",
       order: "1003",
-      account_no: "00032423222",
-      bank: "GT Bank",
-      account_name: "Shola Ameobi",
+      account_no: "0003543556",
+      bank: "Guaranty Trust Bank",
+      account_name: "Abiola",
       phone_no: "07033233322",
       wallet_amount: "N0"
     },
     {
-      amount: "N10000",
+      amount: 10000,
       email: "gbozee@example.com",
       date: "2018-10-12 9:20:33",
       order: "1001",
-      account_no: "00032423222",
-      bank: "GT Bank",
-      account_name: "Shola Ameobi",
+      account_no: "0003543556",
+      bank: "Guaranty Trust Bank",
+      account_name: "Abiola",
       phone_no: "07033233322",
       wallet_amount: "N0"
     },
     {
-      amount: "N10000",
+      amount: 10000,
       email: "gbozee@example.com",
       date: "2018-10-10 9:20:33",
       order: "1004",
-      account_no: "00032423222",
-      bank: "GT Bank",
-      account_name: "Shola Ameobi",
+      account_no: "0003543556",
+      bank: "Guaranty Trust Bank",
+      account_name: "Abiola",
       phone_no: "07033233322",
       wallet_amount: "N0"
     },
     {
-      amount: "N10,500",
+      amount: 10500,
       email: "shola@example.com",
       date: "2018-10-10 9:20:33",
       order: "1005",
-      account_no: "00032423222",
-      bank: "GT Bank",
-      account_name: "Shola Ameobi",
+      account_no: "0003543556",
+      bank: "Guaranty Trust Bank",
+      account_name: "Abiola",
       phone_no: "07033233322",
       wallet_amount: "N0"
     }
@@ -456,110 +456,110 @@ export function getTutorDetail(key, value) {
 export const testDataBookings = {
   bookings: [
     {
-      order: 'ABSCD567',
+      order: "ABSCD567",
       client: {
-        first_name: 'Tioluwani',
-        last_name: 'Kolawole',
-        email: 'kolawole8tiolu@gmial.com',
-        phone_number: '08078657912',
-        address: '37 Alara street, Yaba, Onike, Lagos',
+        first_name: "Tioluwani",
+        last_name: "Kolawole",
+        email: "kolawole8tiolu@gmial.com",
+        phone_number: "08078657912",
+        address: "37 Alara street, Yaba, Onike, Lagos"
       },
       tutor: {
-        first_name: 'James',
-        last_name: 'Sowore',
-        email: 'james.sowore@gmail.com',
-        phone_number: '2348078569732',
+        first_name: "James",
+        last_name: "Sowore",
+        email: "james.sowore@gmail.com",
+        phone_number: "2348078569732"
       },
       sessions: [
         {
           price: 4000,
-          status: 'completed',
+          status: "completed",
           date: 1545045658609,
           no_of_hours: 5,
-          booking_order: 'ABCXYZ65',
-        },
+          booking_order: "ABCXYZ65"
+        }
       ],
       reviews: [
         {
-          tutor: 'james.sowore@gmail.com',
-          commenter: 'kolawole8tiolu@gmial.com',
-          review: 'I am satisfied',
+          tutor: "james.sowore@gmail.com",
+          commenter: "kolawole8tiolu@gmial.com",
+          review: "I am satisfied",
           date: 1545045658609,
-          score: 5,
-        },
+          score: 5
+        }
       ],
       transactions: [
         {
           amount: 5000,
           credit: 0,
-          type: '',
-          transaction_type: '',
-        },
+          type: "",
+          transaction_type: ""
+        }
       ],
-      status: 'scheduled',
+      status: "scheduled",
       createdAt: 1528758000000,
-      updatedAt: 1545045658609,
+      updatedAt: 1545045658609
     },
     {
-      order: 'ABSCD567',
+      order: "ABSCD567",
       client: {
-        first_name: 'Tioluwani',
-        last_name: 'Kolawole',
-        email: 'kolawole8tiolu@gmial.com',
-        phone_number: '08078657912',
-        address: '37 Alara street, Yaba, Onike, Lagos',
+        first_name: "Tioluwani",
+        last_name: "Kolawole",
+        email: "kolawole8tiolu@gmial.com",
+        phone_number: "08078657912",
+        address: "37 Alara street, Yaba, Onike, Lagos"
       },
       tutor: {
-        first_name: 'James',
-        last_name: 'Sowore',
-        email: 'james.sowore@gmail.com',
-        phone_number: '2348078569732',
+        first_name: "James",
+        last_name: "Sowore",
+        email: "james.sowore@gmail.com",
+        phone_number: "2348078569732"
       },
       sessions: [
         {
           price: 4000,
-          status: 'completed',
+          status: "completed",
           date: 1545045658609,
           no_of_hours: 5,
-          booking_order: 'ABCXYZ65',
+          booking_order: "ABCXYZ65"
         },
         {
           price: 4000,
-          status: 'ongoing',
+          status: "ongoing",
           date: 1545045658609,
           no_of_hours: 5,
-          booking_order: 'ABCXYZ89',
-        },
+          booking_order: "ABCXYZ89"
+        }
       ],
       reviews: [
         {
-          tutor: 'james.sowore@gmail.com',
-          commenter: 'kolawole8tiolu@gmial.com',
-          review: 'I am satisfied',
+          tutor: "james.sowore@gmail.com",
+          commenter: "kolawole8tiolu@gmial.com",
+          review: "I am satisfied",
           date: 1545045658609,
-          score: 5,
+          score: 5
         },
         {
-          tutor: 'james.sowore@gmail.com',
-          commenter: 'kolawole8tiolu@gmial.com',
-          review: 'I am satisfied',
+          tutor: "james.sowore@gmail.com",
+          commenter: "kolawole8tiolu@gmial.com",
+          review: "I am satisfied",
           date: 1545045658609,
-          score: 5,
-        },
+          score: 5
+        }
       ],
       transactions: [
         {
           amount: 5000,
           credit: 0,
-          type: '',
-          transaction_type: '',
-        },
+          type: "",
+          transaction_type: ""
+        }
       ],
-      status: 'initialized',
+      status: "initialized",
       createdAt: 1528758000000,
-      updatedAt: 1545045658609,
-    },
-  ],
+      updatedAt: 1545045658609
+    }
+  ]
 };
 
 export const testDataGetBooking = order => {
@@ -583,4 +583,3 @@ export const searchAllBookings = search => {
     );
   });
 };
-

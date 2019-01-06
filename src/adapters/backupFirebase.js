@@ -7,31 +7,22 @@ var config = {
   authDomain: `${process.env.REACT_APP_FIREBASE_PROJECT_ID}.firebaseapp.com`,
   projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID
 };
-let db;
-function loadFireStore() {
-  return import(`firebase/firestore`).then(() => {
-    db = firebase.firestore();
-    // Initialize Cloud Firestore through Firebase
-    const settings = { /* your settings... */ timestampsInSnapshots: true };
-    db.settings(settings);
-    return db;
-  });
-}
-if (!firebase.apps.length) {
-  firebase.initializeApp(config);
-  loadFireStore();
-}
-if (!db) {
-  loadFireStore();
-}
+let db = {
+  collection: () => ({
+    doc: agent => ({
+      set: data => {
+        return new Promise(resolve => resolve(data));
+      },
+      get: () => new Promise(resolve => resolve({ exists: true }))
+    })
+  })
+};
+
 function appFireBase(keys) {
   let { analytics, storage } = keys;
   return {
     loadFireStore: () => {
-      if (db) {
-        return new Promise(resolve => resolve(db));
-      }
-      return loadFireStore();
+      return new Promise(resolve => resolve(db));
     },
     saveAnalytics: (agent, data) => {
       return db
@@ -51,7 +42,16 @@ function appFireBase(keys) {
     },
     getWorkingData: (agent, defaultParam = []) => {
       var docRef = db.collection(storage).doc(agent);
-      return genericGet(docRef, { record: defaultParam }).then(d => d.record);
+      return genericGet(
+        docRef,
+        { record: defaultParam },
+        {
+          pending_verifications: [
+            { order: "1004", transfer_code: "TRF_up7yj58e9eke7xl" }
+          ],
+          verified_transactions: {}
+        }
+      ).then(d => d.record);
     },
     loginUser: (email, password) => {
       return import(`firebase/auth`)
@@ -71,7 +71,7 @@ function appFireBase(keys) {
               }
               return "";
             })
-            .catch(function (error) {
+            .catch(function(error) {
               throw error;
             });
         })
@@ -80,8 +80,7 @@ function appFireBase(keys) {
         });
     },
     getUserToken: token => {
-      let result = parseJwt(token);
-      return new Promise(resolve => resolve(result.email));
+      return new Promise(resolve => resolve("james@example.com"));
     }
   };
 }
@@ -99,17 +98,20 @@ function parseJwt(token) {
   }
   return {};
 }
-function genericGet(ref, defaultParam = {}) {
+function genericGet(ref, defaultParam = {}, result) {
   return ref
     .get()
-    .then(function (doc) {
+    .then(function(doc) {
       if (doc.exists) {
+        if (result) {
+          return { record: result };
+        }
         return doc.data();
       } else {
         return defaultParam;
       }
     })
-    .catch(function (error) {
+    .catch(function(error) {
       throw error;
     });
 }

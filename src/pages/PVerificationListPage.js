@@ -7,7 +7,7 @@ import { Link } from "react-router-dom";
 import { DataContext } from "tuteria-shared/lib/shared/DataContext";
 import { DateFilter } from "../shared/DateFilter";
 import { SpinnerContainer } from "tuteria-shared/lib/shared/primitives/Spinner";
-import queryString from "query-string";
+import {parseQuery} from "tuteria-shared/lib/shared/utils"
 import { filterHelper } from "../adapters";
 export const PVerificationListItem = ({
   heading,
@@ -56,7 +56,7 @@ export class PVerificationListPage extends React.Component {
     let {
       location: { search }
     } = this.props;
-    let { from = "", to = "", q = "", status = "" } = queryString.parse(search);
+    let { from = "", to = "", q = "", status = "" } = parseQuery(search);
     let state = { dateFilter: { from, to }, searchParam: q, filter: status };
 
     this.state = {

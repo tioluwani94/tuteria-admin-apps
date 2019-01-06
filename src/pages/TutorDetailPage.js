@@ -113,6 +113,7 @@ export class TutorDetailPage extends React.Component {
       verified: this.state.data.verified
     }).then(data => {
       this.setState({ data, loading: false, record: null });
+      this.props.history.push("/tutor-list");
     });
   };
   localDispatch = (type, values) => {
@@ -143,23 +144,23 @@ export class TutorDetailPage extends React.Component {
     let data = email_approval
       ? [approveManually]
       : [
-          {
-            confirmAction: () => {
-              this.localDispatch(cActions.NOTIFY_TUTOR_ABOUT_EMAIL, {
-                full_name: this.state.data.full_name
-              }).then(record => {
-                this.setState({ record });
-              });
-            },
-            dialogText:
-              "Are you sure you want to notify the tutor about his email?",
-            children:
-              record && record.actions.includes(actions.EMAIL_VERIFICATION)
-                ? "Send Notice Again"
-                : "Send Notice"
+        {
+          confirmAction: () => {
+            this.localDispatch(cActions.NOTIFY_TUTOR_ABOUT_EMAIL, {
+              full_name: this.state.data.full_name
+            }).then(record => {
+              this.setState({ record });
+            });
           },
-          approveManually
-        ];
+          dialogText:
+            "Are you sure you want to notify the tutor about his email?",
+          children:
+            record && record.actions.includes(actions.EMAIL_VERIFICATION)
+              ? "Send Notice Again"
+              : "Send Notice"
+        },
+        approveManually
+      ];
     return data;
   };
   verificationButton = () => {
@@ -188,7 +189,9 @@ export class TutorDetailPage extends React.Component {
       children: "Reject",
       dialogText: "You are about to reject the ID of the tutor. Confirm?",
       confirmAction: () => {
-        this.localDispatch(cActions.REJECT_ID).then(record => {
+        this.localDispatch(cActions.REJECT_ID, {
+          full_name: this.state.data.full_name
+        }).then(record => {
           this.setState({
             record,
             data: {
@@ -202,32 +205,32 @@ export class TutorDetailPage extends React.Component {
     data = id_verified
       ? []
       : [
-          {
-            confirmAction: () => {
-              this.localDispatch(cActions.APPROVE_ID, {
-                full_name: this.state.data.full_name
-              }).then(record => {
-                this.setState({
-                  record,
-                  id_verified: true,
-                  data: {
-                    ...this.state.data,
-                    identification: {
-                      ...this.state.data.identification,
-                      verified: true
-                    }
+        {
+          confirmAction: () => {
+            this.localDispatch(cActions.APPROVE_ID, {
+              full_name: this.state.data.full_name
+            }).then(record => {
+              this.setState({
+                record,
+                id_verified: true,
+                data: {
+                  ...this.state.data,
+                  identification: {
+                    ...this.state.data.identification,
+                    verified: true
                   }
-                });
+                }
               });
-            },
-            dialogText: "Are you sure you want to approve the ID?",
-            children:
-              record && record.actions.includes(actions.ID_VERIFICATION)
-                ? "Approve Again"
-                : "Approve ID"
+            });
           },
-          reject
-        ];
+          dialogText: "Are you sure you want to approve the ID?",
+          children:
+            record && record.actions.includes(actions.ID_VERIFICATION)
+              ? "Approve Again"
+              : "Approve ID"
+        },
+        reject
+      ];
     return data;
   };
   profilePicButton = () => {
@@ -242,8 +245,8 @@ export class TutorDetailPage extends React.Component {
         confirmAction: () => {
           this.localDispatch(cActions.UPLOAD_PROFILE_PIC, {
             full_name: data.full_name
-          }).then(() => {
-            this.setState({ profile_rejected: true });
+          }).then(record => {
+            this.setState({ record, profile_rejected: true });
           });
         }
       });
@@ -253,8 +256,8 @@ export class TutorDetailPage extends React.Component {
           children: "Approve",
           disabled: this.state.profile_rejected,
           confirmAction: () => {
-            this.localDispatch(cActions.APPROVE_PROFILE_PIC).then(() => {
-              this.setState({ profile_rejected: true });
+            this.localDispatch(cActions.APPROVE_PROFILE_PIC).then(record => {
+              this.setState({ record, profile_rejected: true });
             });
           },
           dialogText:
@@ -278,165 +281,175 @@ export class TutorDetailPage extends React.Component {
     return result;
   };
   idVerified(data = {}, force = false) {
+    let newData = data
+    if (!Boolean(data)) {
+      newData = {}
+    }
     return force
-      ? Boolean(data.verified)
-      : Object.keys(data).length > 0
-      ? data.verified
-      : true;
+      ? Boolean(newData.verified)
+      : Object.keys(newData).length > 0
+        ? newData.verified
+        : true;
   }
+  fromWorkingDirectory = () => {
+    let {
+      match: {
+        params: { email }
+      }
+    } = this.props;
+    return Boolean(email);
+  };
   render() {
     let { data } = this.state;
     console.log(data.profile_pic);
     return Object.keys(data).length === 0 ? (
       <HomePageSpinner />
     ) : (
-      <Flex flexDirection="column">
-        <DetailHeader
-          image={data.profile_pic}
-          detail={[
-            data.years_of_experience,
-            data.full_name,
-            data.email,
-            data.phone_no
-          ]}
-        >
-          {this.idVerified(data.identification, true) && (
-            <Text>Id Verified</Text>
-          )}
-          {data.email_verified && <Text>Email Verified</Text>}
-          <Text>Social Veifications</Text>
-        </DetailHeader>
-        <Flex mb={4} flexDirection="column">
-          <ListGroup name="Verifications" />
-          {data.email_verified ? null : (
-            <VerificationItem
-              buttons={this.emailButtons()}
-              label="Email Verification"
-            />
-          )}
-          {this.idVerified(data.identification, true) ? null : (
-            <VerificationItem
-              label="ID Verifications"
-              buttons={this.verificationButton()}
-            >
-              {data.identification ? (
-                <Link
-                  css={css`
+        <Flex flexDirection="column">
+          <DetailHeader
+            image={data.profile_pic}
+            detail={[
+              data.years_of_experience,
+              data.full_name,
+              data.email,
+              data.phone_no
+            ]}
+          >
+            {this.idVerified(data.identification, true) && (
+              <Text>Id Verified</Text>
+            )}
+            {data.email_verified && <Text>Email Verified</Text>}
+            <Text>Social Veifications</Text>
+          </DetailHeader>
+          <Flex mb={4} flexDirection="column">
+            <ListGroup name="Verifications" />
+            {data.email_verified ? null : (
+              <VerificationItem
+                buttons={this.emailButtons()}
+                label="Email Verification"
+              />
+            )}
+            {this.idVerified(data.identification, true) ? null : (
+              <VerificationItem
+                label="ID Verifications"
+                buttons={this.verificationButton()}
+              >
+                {data.identification ? (
+                  <Link
+                    css={css`
                     cursor: pointer;
                   `}
-                  target="_blank"
-                  href={data.identification.link}
-                >
-                  {data.identification.link}
-                </Link>
-              ) : null}
-            </VerificationItem>
-          )}
-          <VerificationItem
-            label="Profile Picture Approval"
-            buttons={this.profilePicButton()}
-          >
-            <Link
-              css={css`
+                    target="_blank"
+                    href={data.identification.link}
+                  >
+                    {data.identification.link}
+                  </Link>
+                ) : null}
+              </VerificationItem>
+            )}
+            <VerificationItem
+              label="Profile Picture Approval"
+              buttons={this.profilePicButton()}
+            >
+              <Link
+                css={css`
                 cursor: pointer;
               `}
-              target="_blank"
-              href={`http://www.google.com`}
-            >
-              http://ww.google.com
-            </Link>
-          </VerificationItem>
+                target="_blank"
+                href={data.profile_pic}
+              >
+                {data.profile_pic}
+              </Link>
+            </VerificationItem>
 
-          <ListGroup name="Tutor Description" />
-          <Text p={3}>{data.tutor_description}</Text>
-          <ListGroup name="Educations" />
-          {data.educations.map(education => (
-            <ListItem
-              key={education.school}
-              heading={education.school}
-              subHeading={education.course}
-              rightSection={education.degree}
-            />
-          ))}
-          <ListGroup name="Work Experience" />
-          {data.work_experiences.map(w_experience => (
-            <ListItem
-              key={w_experience.name}
-              heading={w_experience.name}
-              subHeading={w_experience.role}
-            />
-          ))}
-          <ListGroup name="Location" />
-          {data.locations.map(location => (
-            <ListItem
-              key={location.state}
-              heading={`${location.address} ${location.vicinity}, ${
-                location.state
-              }`}
-            />
-          ))}
-          <ListGroup name="Subject Veluation Dump" />
-          <Flex>
-            <Flex
-              css={css`
+            <ListGroup name="Tutor Description" />
+            <Text p={3}>{data.tutor_description}</Text>
+            <ListGroup name="Educations" />
+            {data.educations.map(education => (
+              <ListItem
+                key={education.school}
+                heading={education.school}
+                subHeading={education.course}
+                rightSection={education.degree}
+              />
+            ))}
+            <ListGroup name="Work Experience" />
+            {data.work_experiences.map(w_experience => (
+              <ListItem
+                key={w_experience.name}
+                heading={w_experience.name}
+                subHeading={w_experience.role}
+              />
+            ))}
+            <ListGroup name="Location" />
+            {data.locations.map(location => (
+              <ListItem
+                key={location.state}
+                heading={`${location.address} ${location.vicinity}, ${
+                  location.state
+                  }`}
+              />
+            ))}
+            <ListGroup name="Subject Veluation Dump" />
+            <Flex>
+              <Flex
+                css={css`
                 flex: 1;
               `}
-              flexDirection="column"
-            >
-              <Heading>Potential Subjects</Heading>
-              {data.potential_subjects.map(subject => (
-                <DetailItem key={subject} label={subject} />
-              ))}
-              <Heading>Levels With Exam</Heading>
-              {JSON.stringify(data.levels_with_exam)}
-              <Heading>Answers</Heading>
-              {JSON.stringify(data.answers)}
-            </Flex>
-            <Flex
-              css={css`
-                flex: 1;
-              `}
-              flexDirection="column"
-            >
-              <Heading>Classes</Heading>
-              {data.classes.map(klass => (
-                <DetailItem key={klass} label={klass} />
-              ))}
-              <Heading>Curriculum Used</Heading>
-              {data.curriculum_used.map(klass => (
-                <DetailItem key={klass} label={klass} />
-              ))}
-            </Flex>
-          </Flex>
-          {data.currriculum_explanation ? (
-            <>
-              <Heading>Curriculum Explanation</Heading>
-              <Text p={3}>{data.currriculum_explanation}</Text>
-            </>
-          ) : null}
-          <Flex justifyContent="space-between" pt={3}>
-            {!data.verified ||
-              (Boolean(this.state.record) &&
-                Object.keys(this.state.record).length > 0 && (
-                  <DialogButton
-                    dialogText="Are you sure you want to approve this tutor"
-                    confirmAction={this.approveTutor}
-                    disabled={this.state.loading}
-                  >
-                    {!data.verified ? `Approve Tutor` : `Remove from List`}
-                  </DialogButton>
+                flexDirection="column"
+              >
+                <Heading>Potential Subjects</Heading>
+                {data.potential_subjects.map(subject => (
+                  <DetailItem key={subject} label={subject} />
                 ))}
-            <DialogButton
-              dialogText="Are you sure you want to deny this tutor?"
-              confirmAction={this.denyTutor}
-              disabled={this.state.loading}
-            >
-              Deny Tutor
+                <Heading>Levels With Exam</Heading>
+                {JSON.stringify(data.levels_with_exam)}
+                <Heading>Answers</Heading>
+                {JSON.stringify(data.answers)}
+              </Flex>
+              <Flex
+                css={css`
+                flex: 1;
+              `}
+                flexDirection="column"
+              >
+                <Heading>Classes</Heading>
+                {data.classes.map(klass => (
+                  <DetailItem key={klass} label={klass} />
+                ))}
+                <Heading>Curriculum Used</Heading>
+                {data.curriculum_used.map(klass => (
+                  <DetailItem key={klass} label={klass} />
+                ))}
+              </Flex>
+            </Flex>
+            {data.curriculum_explanation ? (
+              <>
+                <Heading>Curriculum Explanation</Heading>
+                <Text p={3}>{data.curriculum_explanation}</Text>
+              </>
+            ) : null}
+            <Flex justifyContent="space-between" pt={3}>
+              {!data.verified && (
+                <DialogButton
+                  dialogText="Are you sure you want to approve this tutor"
+                  confirmAction={this.approveTutor}
+                  disabled={this.state.loading || this.state.record}
+                >
+                  {`Approve Tutor`}
+                </DialogButton>
+              )}
+              <DialogButton
+                dialogText="Are you sure you want to deny this tutor?"
+                confirmAction={this.denyTutor}
+                disabled={this.state.loading}
+              >
+                Deny Tutor
             </DialogButton>
+            </Flex>
           </Flex>
         </Flex>
-      </Flex>
-    );
+      );
   }
 }
 

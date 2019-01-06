@@ -3,8 +3,11 @@ import { css, jsx } from "@emotion/core";
 import { Flex, Text, Heading } from "@rebass/emotion";
 import React from "react";
 import { DataContext } from "tuteria-shared/lib/shared/DataContext";
-import { Route, Switch, Redirect } from "react-router";
-import { DialogButton } from "tuteria-shared/lib/shared/primitives";
+import Route from "react-router/Route";
+import Switch from "react-router/Switch";
+import Redirect from "react-router/Redirect";
+import Link from "react-router-dom/Link";
+import { DialogButton, Button } from "tuteria-shared/lib/shared/primitives";
 
 import {
   ListGroup,
@@ -56,21 +59,24 @@ class TransactionDetail extends React.Component {
           <DetailItem label="Duration">
             {getDuration(detail.booking.start_time, detail.booking.end_time)}
           </DetailItem>
-          <DetailItem label="Made Payment">{detail.made_payment}</DetailItem>
+          <DetailItem label="Made Payment">
+            {detail.booking.made_payment ? "True" : "False"}
+          </DetailItem>
           <DetailItem label="Booking Status">
             {detail.booking.status}
           </DetailItem>
         </Flex>
         <Flex mb={4} flexDirection="column">
           <ListGroup name="Booking Transaction" />
-          {booking_transaction &&
-            Object.keys(booking_transaction).length > 0 && (
+          {Array.isArray(booking_transaction) &&
+            booking_transaction.map(x => (
               <ListItem
-                heading={booking_transaction.amount}
-                subHeading={booking_transaction.status}
-                rightSection={getDate(booking_transaction.date)}
+                key={x.order}
+                heading={x.amount}
+                subHeading={x.status}
+                rightSection={getDate(x.date)}
               />
-            )}
+            ))}
         </Flex>
       </Flex>
     );
@@ -88,14 +94,18 @@ class TransactionList extends React.Component {
   render() {
     let { transactions = [] } = this.props;
     return (
-      <>
+      <React.Fragment>
         <ListGroup name="Transactions" />
         {transactions.map((transaction, index) => {
           return (
             <ListItem
               key={transaction.order}
               onClick={() => {
-                this.toDetailPage(transaction.order, transaction.status);
+                this.toDetailPage(
+                  transaction.order,
+                  transaction.status,
+                  "TUTOR EARNING"
+                );
               }}
               heading={transaction.amount}
               subHeading={transaction.status}
@@ -103,7 +113,7 @@ class TransactionList extends React.Component {
             />
           );
         })}
-      </>
+      </React.Fragment>
     );
   }
 }
@@ -113,11 +123,21 @@ export class WDetailPage extends React.Component {
     data: {},
     loading: false,
     booking_transaction: {},
-    transactions: this.props.transactions || []
+    transactions: this.props.transactions || [],
+    pending_verifications: []
   };
   componentDidMount() {
     let { match, history } = this.props;
     let { dispatch, actions } = this.context;
+    dispatch({ type: actions.GET_PENDING_VERIFICATIONS }).then(data => {
+      let found = data.find(x => x.order.toString() === match.params.order);
+      this.setState({
+        pending_verifications: data,
+        data: found
+          ? { ...this.state.data, transfer_code: found.transfer_code }
+          : this.state.data
+      });
+    });
     let result = dispatch({
       type: actions.GET_WITHDRAWAL,
       value: match.params.order
@@ -139,13 +159,35 @@ export class WDetailPage extends React.Component {
       //should only happen in test scenarios
     }
   }
-  makePayment = () => {
+  verifyPayment = () => {
     let { match, history } = this.props;
     let { dispatch, actions } = this.context;
     this.setState({ loading: true });
-    dispatch({ type: actions.MAKE_PAYMENT, value: match.params.order })
-      .then(() => {
+    dispatch({
+      type: actions.VERIFY_PAYSTACK_TRANSACTION,
+      value: {
+        code: this.state.data.transfer_code,
+        order: match.params.order
+      }
+    }).then(({ status, pending_verifications }) => {
+      if (status) {
+        this.setState({ pending_verifications });
         history.push("/withdrawals");
+      }
+      this.setState({ loading: false });
+    });
+  };
+  makePayment = () => {
+    let { match } = this.props;
+    let { dispatch, actions } = this.context;
+    this.setState({ loading: true });
+    dispatch({ type: actions.MAKE_PAYMENT, value: this.state.data })
+      .then(data => {
+        this.setState({
+          loading: false,
+          data: { ...this.state.data, transfer_code: data.transfer_code },
+          pending_verifications: data.pending_verifications
+        });
       })
       .catch(error => {
         this.setState({ loading: false });
@@ -179,12 +221,12 @@ export class WDetailPage extends React.Component {
         this.setState({ loading: false });
       });
   };
-  getBookingTransaction = booking_order => {
+  getBookingTransaction = (booking_order, kind = "booking") => {
     let { dispatch, actions } = this.context;
     this.setState({ booking_transaction: {} });
     dispatch({
       type: actions.GET_BOOKING_TRANSACTION,
-      value: booking_order
+      value: { order: booking_order, kind }
     })
       .then(data => {
         this.setState({ booking_transaction: data });
@@ -192,34 +234,50 @@ export class WDetailPage extends React.Component {
       .catch(error => {});
   };
   getTransactionDetail = transaction_id => {
-    return this.state.transactions.find(x => x.order === transaction_id);
+    return this.state.transactions.find(
+      x => x.order === parseInt(transaction_id)
+    );
   };
   goToTransactionDetail = (withdrawal_id, transaction_id) => {
     let { history } = this.props;
-    let record = this.getTransactionDetail(transaction_id);
-    this.getBookingTransaction(record.booking.order);
+    // let record = this.getTransactionDetail(transaction_id);
+    // this.getBookingTransaction(record.booking.order);
     history.push(
       `/withdrawals/${withdrawal_id}/transactions/${transaction_id}`
     );
   };
   render() {
     let { data } = this.state;
-    // let {
-    //   match: {
-    //     params: { order }
-    //   }
-    // } = this.props;
     return (
       <Flex flexDirection="column">
         <DetailHeader heading={data.amount} subHeading={`to ${data.email}`}>
-          <DialogButton
-            dialogText="Proceed with tutor payment? "
-            confirmAction={this.makePayment}
-            disabled={this.state.loading}
-            my={2}
-            width={400}
-            children="Pay tutor"
-          />
+          <Link to="/withdrawals">Back to Withdrawal</Link>
+          {this.state.data.transfer_code ? (
+            this.state.pending_verifications
+              .map(x => x.order)
+              .includes(data.order) ? (
+              <Button
+                disabled={this.state.loading}
+                onClick={this.verifyPayment}
+                my={2}
+                bg="green"
+                width={400}
+              >
+                Verify Payment
+              </Button>
+            ) : (
+              <Text>Verified</Text>
+            )
+          ) : (
+            <DialogButton
+              dialogText="Proceed with tutor payment? "
+              confirmAction={this.makePayment}
+              disabled={this.state.loading}
+              my={2}
+              width={400}
+              children="Pay tutor"
+            />
+          )}
         </DetailHeader>
         <Flex mb={4} flexDirection="column">
           <ListGroup name="Details" />
@@ -263,7 +321,8 @@ export class WDetailPage extends React.Component {
                       deleteTransaction={this.deleteTransaction}
                       getBookingTransaction={() =>
                         this.getBookingTransaction(
-                          props.match.params.transaction_id
+                          detail.booking.order
+                          // props.match.params.transaction_id, "transaction"
                         )
                       }
                       loading={this.state.loading}

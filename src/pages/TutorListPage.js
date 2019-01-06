@@ -121,7 +121,7 @@ export class TutorListPage extends React.Component {
                 filterOptions={[
                   { value: "", label: "All" },
                   {
-                    value: "new_applicant",
+                    value: "new_applicants",
                     label: "New Applicants Only"
                   },
                   { value: "verified_tutors", label: "Verified Tutors" }
