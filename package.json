@@ -11,7 +11,7 @@
     "react": "16.6.3",
     "react-dom": "16.6.3",
     "react-scripts": "2.0.3",
-    "tuteria-shared": "gbozee/Shared-Admin-Lib#24504bb"
+    "tuteria-shared": "gbozee/Shared-Admin-Lib"
   },
   "devDependencies": {
     "@babel/core": "^7.2.2",
