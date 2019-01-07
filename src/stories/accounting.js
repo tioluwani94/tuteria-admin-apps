@@ -62,17 +62,20 @@ const RouterWrapper = ({ children, initialIndex = 0, test = true }) => {
 };
 storiesOf("Accounting Application", module)
   .add("PVerificationListPage", () => (
-    <LoginPage
-      login={() => {
-        return new Promise((resolve, reject) => {
-          setTimeout(() => {
-            // resolve();
-            reject({ data: "The credentials is invalid" });
-          }, 2000);
-        });
-      }}
-      toNextPage={() => {}}
-    />
+    <RouterWrapper initialIndex={3}>
+      <Route
+        path="/payment-verifications"
+        exact
+        render={props => {
+          return (
+            <PVerificationListPage
+              detailPageUrl={order => `/payment-verifications/${order}`}
+              {...props}
+            />
+          );
+        }}
+      />
+    </RouterWrapper>
   ))
   .add("PVerificationDetailPage", () => (
     <RouterWrapper initialIndex={4}>

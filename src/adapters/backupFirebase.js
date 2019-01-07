@@ -40,18 +40,11 @@ function appFireBase(keys) {
         .doc(agent)
         .set({ record: data });
     },
-    getWorkingData: (agent, defaultParam = []) => {
+    getWorkingData: (agent, defaultParam = [], defaultValue) => {
       var docRef = db.collection(storage).doc(agent);
-      return genericGet(
-        docRef,
-        { record: defaultParam },
-        {
-          pending_verifications: [
-            { order: "1004", transfer_code: "TRF_up7yj58e9eke7xl" }
-          ],
-          verified_transactions: {}
-        }
-      ).then(d => d.record);
+      return genericGet(docRef, { record: defaultParam }, defaultValue).then(
+        d => d.record
+      );
     },
     loginUser: (email, password) => {
       return import(`firebase/auth`)
@@ -106,6 +99,7 @@ function genericGet(ref, defaultParam = {}, result) {
         if (result) {
           return { record: result };
         }
+        debugger;
         return doc.data();
       } else {
         return defaultParam;
