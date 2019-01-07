@@ -1,7 +1,7 @@
 {
   "version": 2,
-  "name": "tuteria-admin-apps",
-  "alias": "tuteria-admin-apps",
+  "name": "tuteria-admin-apps-kola",
+  "alias": "tuteria-admin-apps-kola",
   "routes": [
     {
       "src": "^/static/(.*)",
