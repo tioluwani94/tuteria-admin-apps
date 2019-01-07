@@ -12,7 +12,7 @@ import WithRouter from 'tuteria-shared/lib/shared/PageSetup';
 import testServerAdapter from '../adapters/test';
 import paymentContext from '../paymentContext';
 import appFirebase from '../adapters/backupFirebase';
-import { RequestDetailPage } from '../pages/RequestDetailsPage';
+import { SDetailPage } from '../pages/SDetailPage';
 
 const RouterWrapper = ({ children, initialIndex = 0, test = true }) => {
   return (
@@ -54,7 +54,7 @@ storiesOf('Sales and Customer Success Application', module).add(
       <Route
         // path="/requests/112/transactions"
         render={props => {
-          return <RequestDetailPage {...props} />;
+          return <SDetailPage {...props} />;
         }}
       />
     </RouterWrapper>

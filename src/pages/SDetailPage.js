@@ -34,7 +34,7 @@ const RemarkForm = ({ onSubmit }) => (
   </form>
 );
 
-export class RequestDetailPage extends Component {
+export class SDetailPage extends Component {
   state = {
     data: {
       request: {
