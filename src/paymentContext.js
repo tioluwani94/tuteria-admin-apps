@@ -1,11 +1,12 @@
 import { format } from "date-fns";
 import { testData } from "./adapters/test_data";
-import Paystack from "tuteria-shared/lib/shared/adapters/paystack";
+// import Paystack from "tuteria-shared/lib/shared/adapters/paystack";
 
-const paystack = Paystack(
-  "https://paystack-graphql-server.now.sh",
-  process.env.PAYSTACK_PUBLIC_KEY
-);
+// const paystack = Paystack(
+//   "https://paystack-graphql-server.now.sh",
+//   process.env.PAYSTACK_PUBLIC_KEY
+// );
+const paystack = {};
 export const actions = {
   GET_WITHDRAWALS: "GET_WITHDRAWALS",
   GET_WITHDRAWAL: "GET_WITHDRAWAL",

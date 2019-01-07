@@ -13,7 +13,7 @@ import {
 
 import { SpinnerContainer } from "tuteria-shared/lib/shared/primitives/Spinner";
 import { DateFilter } from "tuteria-shared/lib/shared/DateFilter";
-import { parseQuery } from "tuteria-shared/lib/shared/utils";
+// import { parseQuery } from "tuteria-shared/lib/shared/utils";
 export { ListGroup, ListItem };
 
 export class WListPage extends React.Component {
@@ -23,7 +23,8 @@ export class WListPage extends React.Component {
     let {
       location: { search }
     } = this.props;
-    let { status = "new" } = parseQuery(search);
+    let { status = "new" } = search;
+    // let { status = "new" } = parseQuery(search);
 
     this.state = {
       data: [],
