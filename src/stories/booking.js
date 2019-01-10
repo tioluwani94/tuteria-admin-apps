@@ -11,7 +11,7 @@ const WithRouter = ({ children, initialIndex = 0, test = true }) => {
   return (
     <DataProvider
       test={test}
-      // adapter={testServerAdapter}
+      adapter={{}}
       adapter={devAdapter}
       authenticateUser={token => new Promise(resolve => resolve(true))}
     >
